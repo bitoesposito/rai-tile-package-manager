@@ -10,7 +10,7 @@ Prende il posto dello script Python e di `python -m http.server`. Si usa senza r
 
 ## Scaricare e avviare
 
-Scarica `Rai-Package-tile-manager.zip` dalla pagina [Releases](https://github.com/bitoesposito/rai-tile-package-manager/releases/latest), estrai i file e apri `Rai - Package tile manager.exe` con un doppio clic. L'app non va installata: usa .NET Framework 4.8, già presente in Windows 10 e 11.
+Scarica `rai-package-tile-manager.zip` dalla pagina [Releases](https://github.com/bitoesposito/rai-tile-package-manager/releases/latest), estrai i file e apri `Rai - Package tile manager.exe` con un doppio clic. L'app non va installata: usa .NET Framework 4.8, già presente in Windows 10 e 11.
 
 L'exe non è firmato digitalmente, quindi al primo avvio Windows SmartScreen può mostrare "PC protetto da Windows". In quel caso fai clic su "Ulteriori informazioni" e poi su "Esegui comunque".
 

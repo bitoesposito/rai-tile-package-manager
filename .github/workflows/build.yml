@@ -57,5 +57,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          zip -j Rai-Package-tile-manager.zip "Rai - Package tile manager.exe" OFL.txt
-          gh release create "$GITHUB_REF_NAME" Rai-Package-tile-manager.zip --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
+          zip -j rai-package-tile-manager.zip "Rai - Package tile manager.exe" OFL.txt
+          gh release create "$GITHUB_REF_NAME" rai-package-tile-manager.zip --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
