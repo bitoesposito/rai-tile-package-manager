@@ -33,6 +33,7 @@ It replaces a hand-run Python script plus `python -m http.server`. The tool unde
 - Output always goes into a dedicated project folder, never straight into a generic folder such as the Desktop.
 - Adding a package to an existing project requires the same image format; tiles already present are kept by default, because a small-area package also carries low zoom levels that would erase the rest of the map. Overwriting is an explicit choice.
 - Local server on 127.0.0.1 and ::1 only, default port 8000.
+- For GEOlayers the app lists the Raster Source values of the project: URI, min and max zoom, tile size 256 px and bounds (the ArcGIS Pro extent converted to degrees, union of the imported packages).
 - Remote storage: a web server URL can be checked against a tile of the local project. Storage type (web server preferred, network folder possible) and upload method are undecided.
 
 ## Brand Commitments

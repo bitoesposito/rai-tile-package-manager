@@ -264,6 +264,9 @@ The drop target: a 214 px Gallery Navy field ruled with a 44 px tile grid, its l
 ### URL Button (signature)
 A 92 px white panel with a 1 px Rule border: a real tile of the project as a square thumbnail (a 3x3 grid on navy when none), the URL in Inter Tight 12.5pt with `{z}`, `{x}`, `{y}` in Action Blue, a note line in Slate, and a copy mark at the right. Click, Enter or Space copies; for two seconds the copy mark fills green and the note turns green.
 
+### GEOlayers Fields
+The Raster Source values after the URI, attached under the URL button so the two read as one card (it draws no top edge). Names in Slate, values as Action Blue links in Inter Tight SemiBold 10.5pt, in GEOlayers' order: Min Zoom and Max Zoom, Tile Size, then the four Bounds in degrees (west, south, east, north). A click or Enter copies the bare number; the note line turns green with what was copied for 2.5 s. Unknown bounds read "non disponibili" with the fix in the note.
+
 ### Progress Line
 A 4 px Rule track filled with Action Blue.
 

@@ -19,6 +19,8 @@ namespace RaiTilePackageManager
         /// <summary>Not stored: the project folder and the zoom levels found on disk.</summary>
         public string Dir;
         public int[] Levels;
+        /// <summary>Not stored: the union of the packages' extents in degrees (west, south, east, north), or null when unknown.</summary>
+        public double[] Bounds;
     }
 
     /// <summary>One package imported into the project.</summary>
@@ -28,7 +30,8 @@ namespace RaiTilePackageManager
         [DataMember(Name = "file", Order = 1)] public string File;
         [DataMember(Name = "name", Order = 2)] public string Name;
         [DataMember(Name = "levels", Order = 3)] public int[] Levels;
-        [DataMember(Name = "date", Order = 4)] public string Date;
+        [DataMember(Name = "bounds", Order = 4, EmitDefaultValue = false)] public double[] Bounds;
+        [DataMember(Name = "date", Order = 5)] public string Date;
     }
 
     /// <summary>Project folders: recognising them, creating dedicated ones, recording what goes in.</summary>
@@ -61,6 +64,7 @@ namespace RaiTilePackageManager
             info.Dir = dir;
             info.Levels = levels;
             info.Sources = info.Sources ?? new List<SourceInfo>();
+            info.Bounds = Union(info.Sources);
             info.Format = info.Format ?? levels
                 .Select(z => Directory.EnumerateFiles(Path.Combine(dir, z.ToString()), "*", SearchOption.AllDirectories).FirstOrDefault())
                 .Where(f => f != null)
@@ -125,6 +129,7 @@ namespace RaiTilePackageManager
                 File = Path.GetFileName(pkg.FilePath),
                 Name = pkg.Name,
                 Levels = pkg.Levels,
+                Bounds = pkg.Bounds,
                 Date = DateTimeOffset.Now.ToString("yyyy-MM-ddTHH:mm:sszzz", CultureInfo.InvariantCulture),
             });
             Save(dir, info);
@@ -151,6 +156,18 @@ namespace RaiTilePackageManager
                     return (z, x, y, file);
             }
             return null;
+        }
+
+        /// <summary>
+        /// The union of the packages' extents; a re-import of the same file replaces its older entry. Null as soon as one
+        /// package has no extent recorded (imported by version 1.0.0 or by the old script): with partial bounds GEOlayers
+        /// would skip that package's tiles.
+        /// </summary>
+        static double[] Union(List<SourceInfo> sources)
+        {
+            var latest = sources.GroupBy(s => s.File, StringComparer.OrdinalIgnoreCase).Select(g => g.Last()).ToList();
+            if (latest.Count == 0 || latest.Any(s => s.Bounds == null || s.Bounds.Length != 4)) return null;
+            return new[] { latest.Min(s => s.Bounds[0]), latest.Min(s => s.Bounds[1]), latest.Max(s => s.Bounds[2]), latest.Max(s => s.Bounds[3]) };
         }
 
         static int[] Levels(string dir) => Directory.EnumerateDirectories(dir)

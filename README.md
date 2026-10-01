@@ -52,9 +52,14 @@ Quando le tile del progetto saranno pubblicate su un web server, inserisci l'ind
 
 ## Usare le tile in GEOlayers 3
 
-1. Metti in onda il progetto e fai clic sul riquadro dell'URL per copiarlo.
-2. In GEOlayers 3 aggiungi uno stile mappa personalizzato, cioè un tile server XYZ, e incolla l'URL.
-3. Lavora dentro gli zoom del progetto, che l'app mostra nella scheda In onda. Fuori da quegli zoom GEOlayers non trova tile e nell'app sale il contatore delle tile non trovate.
+In GEOlayers 3 crea una Raster Source di tipo xyz. La scheda In onda mostra i valori da inserire, già convertiti: fai clic su un valore per copiarlo e incollalo nel campo con lo stesso nome.
+
+- URI: l'URL del server, per esempio `http://localhost:8000/{z}/{x}/{y}.png`. Funziona quando il progetto è in onda.
+- Min Zoom e Max Zoom: il primo e l'ultimo zoom del progetto.
+- Tile Size: 256 px, la dimensione delle tile del progetto. Con 512 px GEOlayers le mostra ingrandite al doppio e meno nitide.
+- Bounds: l'extent impostata in ArcGIS Pro, convertita da Web Mercator in gradi, nell'ordine ovest, sud, est, nord. Se il progetto contiene più pacchetti, i bounds li comprendono tutti.
+
+L'app registra i bounds quando un pacchetto entra nel progetto. Per i progetti creati con il vecchio script o con la versione 1.0.0, aggiungi di nuovo i pacchetti dalla scheda Importa: le tile già presenti restano come sono e l'app calcola i bounds.
 
 ## Aggiungere tile a un progetto esistente
 
@@ -84,7 +89,7 @@ mappa/
 ...
 ```
 
-`metadata.json` registra il formato delle tile, l'indirizzo remoto verificato e lo storico dei pacchetti importati (file, nome, zoom e data). Anche le cartelle create con il vecchio script Python, che contengono solo le cartelle degli zoom, vengono riconosciute come progetti. Una cartella qualsiasi, come il Desktop o Documenti, non lo è mai.
+`metadata.json` registra il formato delle tile, l'indirizzo remoto verificato e lo storico dei pacchetti importati (file, nome, zoom, extent in gradi e data). Anche le cartelle create con il vecchio script Python, che contengono solo le cartelle degli zoom, vengono riconosciute come progetti. Una cartella qualsiasi, come il Desktop o Documenti, non lo è mai.
 
 ## Problemi comuni
 

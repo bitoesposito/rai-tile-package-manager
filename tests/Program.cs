@@ -37,8 +37,9 @@ static class Tests
     static void Conversion(string tmp)
     {
         // z17 bundle names need 5 hex digits (R1ff80C0ff00): the old script read only 4.
-        var pkg = TilePackage.Open(Package(tmp, "a.tpkx", "PNG32", 102100,
+        var pkg = TilePackage.Open(Package(tmp, "a.tpkx", "PNG32", 102100, 256, new[] { 0.0, 0, 10, 10 },
             T(0, 0, 0, "A0"), T(1, 1, 0, "A1"), T(1, 0, 1, "A2"), T(17, 0x1ff82, 0x0ff03, "A3")));
+        Check(Near(pkg.Bounds, 0, 0, 10, 10), "extent di root.json convertita in gradi");
         Check(pkg.Problems.Count == 0 && pkg.Warnings.Count == 0, "pacchetto valido senza avvisi");
         Check(pkg.Extension == "png" && pkg.Name == "Test", "formato e nome da root.json");
         Check(pkg.Levels.SequenceEqual(new[] { 0, 1, 17 }), "livelli 0, 1, 17");
@@ -54,6 +55,7 @@ static class Tests
         var project = TileFolder.Open(dir);
         Check(project.Format == "png" && project.Levels.SequenceEqual(new[] { 0, 1, 17 }), "metadata.json letto");
         Check(project.Sources.Count == 1 && project.Sources[0].File == "a.tpkx", "storico dei pacchetti");
+        Check(Near(project.Bounds, 0, 0, 10, 10), "bounds del progetto");
     }
 
     static void Folders(string tmp)
@@ -83,6 +85,7 @@ static class Tests
         File.WriteAllText(Path.Combine(legacy, "Thumbs.db"), "x");
         var info = TileFolder.Open(legacy);
         Check(info != null && info.Format == "jpg" && info.Levels.SequenceEqual(new[] { 5 }) && info.Sources.Count == 0, "cartella del vecchio script riconosciuta");
+        Check(info.Bounds == null, "cartella del vecchio script: bounds sconosciuti");
         Check(TileFolder.SampleTile(legacy).Value.X == 17, "tile campione z/x/y");
     }
 
@@ -90,17 +93,31 @@ static class Tests
     {
         var dir = Path.Combine(tmp, "out");
         // An ArcGIS Pro package of a small area at higher zoom also carries its own z0 tile: it must not replace ours.
-        var detail = TilePackage.Open(Package(tmp, "b.tpkx", "PNG", 3857, T(0, 0, 0, "B0"), T(2, 3, 3, "B2")));
+        var detail = TilePackage.Open(Package(tmp, "b.tpkx", "PNG", 3857, 256, new[] { 5.0, -5, 20, 8 }, T(0, 0, 0, "B0"), T(2, 3, 3, "B2")));
         Check(TileFolder.Incompatibility(TileFolder.Open(dir), detail) == null, "stesso formato: si può aggiungere");
 
         var keep = Extract(detail, dir, false);
         Check(keep.Written == 1 && keep.Skipped == 1, "aggiunta: 1 nuova, 1 tenuta");
         Check(Tile(dir, 0, 0, 0) == "A0" && Tile(dir, 2, 3, 3) == "B2", "tile esistente tenuta, nuova aggiunta");
+        TileFolder.Record(dir, detail);
+        Check(Near(TileFolder.Open(dir).Bounds, 0, -5, 20, 10), "bounds: unione dei pacchetti");
 
         var replace = Extract(detail, dir, true);
         Check(replace.Written == 2 && Tile(dir, 0, 0, 0) == "B0", "sostituzione");
 
         Check(TileFolder.Incompatibility(TileFolder.Open(Path.Combine(tmp, "legacy")), detail) != null, "png in un progetto jpg: bloccato");
+
+        // A package recorded without an extent (version 1.0.0) leaves the bounds unknown until it is imported again.
+        var old = Path.Combine(tmp, "senza-extent");
+        var noExtent = TilePackage.Open(Package(tmp, "z.tpkx", "PNG", 3857, T(1, 0, 0, "Z")));
+        Extract(noExtent, old, false);
+        TileFolder.Record(old, noExtent);
+        Check(noExtent.Bounds == null && TileFolder.Open(old).Bounds == null, "pacchetto senza extent: bounds sconosciuti");
+        Directory.CreateDirectory(Path.Combine(tmp, "riesportato"));
+        var again = TilePackage.Open(Package(Path.Combine(tmp, "riesportato"), "z.tpkx", "PNG", 3857, 256, new[] { 1.0, 2, 3, 4 }, T(1, 0, 0, "Z")));
+        Extract(again, old, false);
+        TileFolder.Record(old, again);
+        Check(Near(TileFolder.Open(old).Bounds, 1, 2, 3, 4), "reimportato con l'extent: bounds noti");
     }
 
     static void Rejections(string tmp)
@@ -127,9 +144,15 @@ static class Tests
                 "<LODInfo><LevelID>1</LevelID><Resolution>99999</Resolution></LODInfo></LODInfos></TileCacheInfo>" +
                 "<TileImageInfo><CacheTileFormat>PNG</CacheTileFormat></TileImageInfo></CacheInfo>"));
             Add(zip, "v101/Layers/_alllayers/L01/R0000C0000.bundle", BundleBytes(new[] { T(1, 0, 0, "F") }));
+            var (west, south) = Merc(10, 40);
+            var (east, north) = Merc(20, 45);
+            Add(zip, "v101/Layers/conf.cdi", Encoding.UTF8.GetBytes(FormattableString.Invariant(
+                $"<EnvelopeN><XMin>{west:R}</XMin><YMin>{south:R}</YMin><XMax>{east:R}</XMax><YMax>{north:R}</YMax>") +
+                "<SpatialReference><WKID>102100</WKID><LatestWKID>3857</LatestWKID></SpatialReference></EnvelopeN>"));
         }
         var custom = TilePackage.Open(tpk);
         Check(custom.Problems.Count == 1 && custom.Problems[0].Contains("livello 1"), ".tpk con scale personalizzate: bloccato");
+        Check(Near(custom.Bounds, 10, 40, 20, 45), ".tpk: extent da conf.cdi");
 
         var v1 = Path.Combine(tmp, "g.tpk");
         using (var zip = ZipFile.Open(v1, ZipArchiveMode.Create))
@@ -167,15 +190,27 @@ static class Tests
     static (int Z, int X, int Y, string Data) T(int z, int x, int y, string data) => (z, x, y, data);
 
     static string Package(string tmp, string name, string format, int wkid, params (int Z, int X, int Y, string Data)[] tiles) =>
-        Package(tmp, name, format, wkid, 256, tiles);
+        Package(tmp, name, format, wkid, 256, null, tiles);
 
-    static string Package(string tmp, string name, string format, int wkid, int tileSize, params (int Z, int X, int Y, string Data)[] tiles)
+    static string Package(string tmp, string name, string format, int wkid, int tileSize, params (int Z, int X, int Y, string Data)[] tiles) =>
+        Package(tmp, name, format, wkid, tileSize, null, tiles);
+
+    /// <summary>A .tpkx; <paramref name="extent"/> (west, south, east, north in degrees) goes into root.json in Web Mercator metres.</summary>
+    static string Package(string tmp, string name, string format, int wkid, int tileSize, double[] extent, params (int Z, int X, int Y, string Data)[] tiles)
     {
         var path = Path.Combine(tmp, name);
         var lods = string.Join(",", Enumerable.Range(0, 24).Select(l =>
             $"{{\"level\":{l},\"resolution\":{(156543.03392804097 / Math.Pow(2, l)).ToString("R", CultureInfo.InvariantCulture)}}}"));
         var root = "{\"name\":\"Test\",\"tileImageInfo\":{\"format\":\"" + format + "\"},\"tileInfo\":{\"rows\":" + tileSize + ",\"cols\":" + tileSize + "," +
-                   "\"spatialReference\":{\"wkid\":" + wkid + "},\"origin\":{\"x\":-20037508.342787001,\"y\":20037508.342787001},\"lods\":[" + lods + "]}}";
+                   "\"spatialReference\":{\"wkid\":" + wkid + "},\"origin\":{\"x\":-20037508.342787001,\"y\":20037508.342787001},\"lods\":[" + lods + "]}";
+        if (extent != null)
+        {
+            var (xmin, ymin) = Merc(extent[0], extent[1]);
+            var (xmax, ymax) = Merc(extent[2], extent[3]);
+            root += FormattableString.Invariant(
+                $",\"fullExtent\":{{\"xmin\":{xmin:R},\"ymin\":{ymin:R},\"xmax\":{xmax:R},\"ymax\":{ymax:R},\"spatialReference\":{{\"wkid\":102100,\"latestWkid\":3857}}}}");
+        }
+        root += "}";
         using (var zip = ZipFile.Open(path, ZipArchiveMode.Create))
         {
             Add(zip, "root.json", Encoding.UTF8.GetBytes(root));
@@ -212,6 +247,13 @@ static class Tests
     }
 
     // --- helpers ------------------------------------------------------------------------------------
+
+    /// <summary>Degrees to Web Mercator metres.</summary>
+    static (double X, double Y) Merc(double lon, double lat) =>
+        (lon * Math.PI / 180 * 6378137, 6378137 * Math.Log(Math.Tan(Math.PI / 4 + lat * Math.PI / 360)));
+
+    static bool Near(double[] actual, params double[] expected) =>
+        actual != null && actual.Length == expected.Length && actual.Zip(expected, (a, e) => Math.Abs(a - e) < 1e-6).All(ok => ok);
 
     static ExtractProgress Extract(TilePackage pkg, string dir, bool overwrite)
     {

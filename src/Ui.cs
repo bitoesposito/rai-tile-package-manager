@@ -972,6 +972,147 @@ namespace RaiTilePackageManager
         protected override void OnLostFocus(EventArgs e) { Invalidate(); base.OnLostFocus(e); }
     }
 
+    /// <summary>
+    /// The GEOlayers Raster Source fields after the URI, laid out like the GEOlayers panel: names in slate, values in the
+    /// action blue. A click (or Enter) on a value copies it for the field with the same name. It sits right under the URL
+    /// button and shares its border, so the two read as one card.
+    /// </summary>
+    sealed class GeoFields : TableLayoutPanel
+    {
+        const string CopyHint = "Fai clic su un valore per copiarlo, poi incollalo nel campo con lo stesso nome in GEOlayers.";
+        const string NoBoundsHint = "Bounds non disponibili per questo progetto: aggiungi di nuovo i suoi pacchetti dalla scheda Importa e l'app li calcola.";
+        static readonly Font ValueFont = Fonts.SemiBold(10.5f);
+        static readonly string[] Sides = { "ovest", "sud", "est", "nord" };
+        readonly LinkLabel minZoom, maxZoom, tileSize;
+        readonly LinkLabel[] bounds = new LinkLabel[4];
+        readonly Label noBounds = new Label { Text = "non disponibili", AutoSize = true, ForeColor = Theme.Muted, Margin = new Padding(0, 4, 0, 4) };
+        readonly Label note = new Label { AutoSize = true, ForeColor = Theme.Muted, Anchor = AnchorStyles.Left | AnchorStyles.Right, Margin = new Padding(0, 8, 0, 0) };
+        readonly ToolTip tips = new ToolTip { AutoPopDelay = 20000 };
+        readonly Timer reset = new Timer { Interval = 2500 };
+        ProjectInfo project;
+        string idle = CopyHint;
+
+        public GeoFields()
+        {
+            SetStyle(ControlStyles.ResizeRedraw, true);
+            ColumnCount = 2;
+            RowCount = 4;
+            AutoSize = true;
+            Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            BackColor = Theme.Panel;
+            Padding = new Padding(16, 8, 16, 10);
+            Margin = new Padding(0, 0, 0, 4);
+            ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            for (int i = 0; i < RowCount; i++) RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+            minZoom = Value("Min Zoom");
+            maxZoom = Value("Max Zoom");
+            tileSize = Value("Tile Size");
+            for (int i = 0; i < 4; i++) bounds[i] = Value("Bounds, " + Sides[i]);
+            Controls.Add(Caption("Min Zoom"), 0, 0);
+            Controls.Add(Row(minZoom, Caption("Max Zoom"), maxZoom), 1, 0);
+            Controls.Add(Caption("Tile Size"), 0, 1);
+            Controls.Add(Row(tileSize), 1, 1);
+            Controls.Add(Caption("Bounds"), 0, 2);
+            Controls.Add(Row(bounds.Concat(new Control[] { noBounds }).ToArray()), 1, 2);
+            Controls.Add(note, 0, 3);
+            SetColumnSpan(note, 2);
+
+            tips.SetToolTip(tileSize, "Le tile del progetto sono da 256 px: con 512 px GEOlayers le mostra ingrandite al doppio e meno nitide.");
+            string[] meaning = { "longitudine minima", "latitudine minima", "longitudine massima", "latitudine massima" };
+            for (int i = 0; i < 4; i++) tips.SetToolTip(bounds[i], $"{char.ToUpper(Sides[i][0])}{Sides[i].Substring(1)}: {meaning[i]}, in gradi");
+            reset.Tick += (s, e) =>
+            {
+                reset.Stop();
+                ShowNote(idle, Theme.Muted);
+            };
+            ShowNote(idle, Theme.Muted);
+        }
+
+        /// <summary>Shows the values of <paramref name="value"/>; a refresh of the same project keeps the copy feedback.</summary>
+        public void SetProject(ProjectInfo value)
+        {
+            if (value == project) return;
+            project = value;
+            if (value == null) return;
+            var levels = value.Levels ?? new int[0];
+            Set(minZoom, levels.Length > 0 ? levels.Min().ToString(CultureInfo.InvariantCulture) : null, "");
+            Set(maxZoom, levels.Length > 0 ? levels.Max().ToString(CultureInfo.InvariantCulture) : null, "");
+            Set(tileSize, "256", " px"); // the app accepts only 256 px packages
+            bool known = value.Bounds != null;
+            for (int i = 0; i < 4; i++)
+            {
+                bounds[i].Visible = known;
+                if (known) Set(bounds[i], value.Bounds[i].ToString("0.######", CultureInfo.InvariantCulture), "°");
+            }
+            noBounds.Visible = !known;
+            idle = known ? CopyHint : NoBoundsHint;
+            reset.Stop();
+            ShowNote(idle, Theme.Muted);
+        }
+
+        static void Set(LinkLabel link, string copy, string unit)
+        {
+            link.Tag = copy;
+            link.Text = copy == null ? "-" : copy + unit;
+            link.Enabled = copy != null;
+        }
+
+        void Copy(LinkLabel link, string field)
+        {
+            if (!(link.Tag is string text)) return;
+            try
+            {
+                Clipboard.SetDataObject(text, true, 5, 100);
+            }
+            catch (ExternalException)
+            {
+                return; // clipboard held by another program: nothing copied, nothing claimed
+            }
+            ShowNote($"Copiato {text} ({field}).", Theme.Ok);
+            reset.Stop();
+            reset.Start();
+        }
+
+        void ShowNote(string text, Color color)
+        {
+            note.Text = text;
+            note.ForeColor = color;
+        }
+
+        LinkLabel Value(string field)
+        {
+            var link = new LinkLabel
+            {
+                AutoSize = true, Font = ValueFont, LinkBehavior = LinkBehavior.HoverUnderline, Margin = new Padding(0, 3, 22, 3),
+                LinkColor = Theme.Action, ActiveLinkColor = Theme.ActionPressed, VisitedLinkColor = Theme.Action, DisabledLinkColor = Theme.Muted,
+                AccessibleName = field, AccessibleDescription = "Fai clic per copiarlo",
+            };
+            link.LinkClicked += (s, e) => Copy(link, field);
+            return link;
+        }
+
+        static Label Caption(string text) => new Label
+        {
+            Text = text, AutoSize = true, ForeColor = Theme.Muted, Anchor = AnchorStyles.Left, Margin = new Padding(0, 4, 14, 4),
+        };
+
+        static FlowLayoutPanel Row(params Control[] controls)
+        {
+            var row = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Margin = Padding.Empty, Anchor = AnchorStyles.Left };
+            row.Controls.AddRange(controls);
+            return row;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            using (var pen = new Pen(Theme.Rule)) // no top edge: the URL button's bottom border is the divider
+                e.Graphics.DrawLines(pen, new[] { new Point(0, 0), new Point(0, Height - 1), new Point(Width - 1, Height - 1), new Point(Width - 1, 0) });
+        }
+    }
+
     /// <summary>Builders for the page layout: headings, hints, and rows where one control takes the spare width.</summary>
     static class Ui
     {

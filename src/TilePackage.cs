@@ -41,6 +41,8 @@ namespace RaiTilePackageManager
         public List<Bundle> Bundles { get; } = new List<Bundle>();
         public int[] Levels { get; private set; }
         public long TotalBytes => Bundles.Sum(b => b.Length);
+        /// <summary>The extent set in ArcGIS Pro, in degrees: west, south, east, north. Null when the package declares none.</summary>
+        public double[] Bounds { get; private set; }
         /// <summary>Reasons the tiles would not line up as XYZ Web Mercator tiles: conversion is blocked.</summary>
         public List<string> Problems { get; } = new List<string>();
         public List<string> Warnings { get; } = new List<string>();
@@ -55,6 +57,7 @@ namespace RaiTilePackageManager
         static readonly int[] WebMercatorWkids = { 3857, 102100, 102113, 900913 };
         const double OriginShift = 20037508.342787;
         const double Level0Resolution = 156543.03392804097; // metres per pixel at zoom 0, 256 px tiles
+        const double EarthRadius = 6378137;
         const string Reexport = "In ArcGIS Pro riesporta il pacchetto con lo schema di tassellatura \"ArcGIS Online / Bing Maps / Google Maps\".";
 
         public static TilePackage Open(string path)
@@ -62,7 +65,7 @@ namespace RaiTilePackageManager
             var p = new TilePackage { FilePath = path, Name = Path.GetFileNameWithoutExtension(path) };
             using (var zip = ZipFile.OpenRead(path))
             {
-                ZipArchiveEntry root = null, conf = null;
+                ZipArchiveEntry root = null, conf = null, cdi = null;
                 bool v1 = false;
                 foreach (var e in zip.Entries)
                 {
@@ -84,6 +87,8 @@ namespace RaiTilePackageManager
                         root = e;
                     else if (file.Equals("conf.xml", StringComparison.OrdinalIgnoreCase) && conf == null)
                         conf = e;
+                    else if (file.Equals("conf.cdi", StringComparison.OrdinalIgnoreCase) && cdi == null)
+                        cdi = e; // .tpk: the extent of the cache
                 }
                 p.Levels = p.Bundles.Select(b => b.Level).Distinct().OrderBy(l => l).ToArray();
                 if (p.Bundles.Count == 0)
@@ -94,7 +99,11 @@ namespace RaiTilePackageManager
                 if (root != null)
                     using (var s = root.Open()) p.ReadRootJson(s);
                 else if (conf != null)
+                {
                     using (var s = conf.Open()) p.ReadConfXml(s);
+                    if (cdi != null)
+                        using (var s = cdi.Open()) p.ReadConfCdi(s);
+                }
                 else
                     p.Warnings.Add("Il pacchetto non contiene metadati: l'app assume lo schema Web Mercator standard.");
             }
@@ -103,8 +112,19 @@ namespace RaiTilePackageManager
 
         void ReadRootJson(Stream s)
         {
-            var root = (RootJson)new DataContractJsonSerializer(typeof(RootJson)).ReadObject(s);
+            var json = new MemoryStream();
+            s.CopyTo(json);
+            var root = (RootJson)new DataContractJsonSerializer(typeof(RootJson)).ReadObject(new MemoryStream(json.ToArray()));
             if (!string.IsNullOrEmpty(root.name)) Name = root.name;
+            try
+            {
+                // Read on its own: an odd extent must not stop the conversion, it only leaves the bounds unknown.
+                var extents = (ExtentsJson)new DataContractJsonSerializer(typeof(ExtentsJson)).ReadObject(new MemoryStream(json.ToArray()));
+                var e = extents.fullExtent ?? extents.initialExtent;
+                if (e?.xmin != null && e.ymin != null && e.xmax != null && e.ymax != null)
+                    Bounds = Degrees(e.xmin.Value, e.ymin.Value, e.xmax.Value, e.ymax.Value, Wkid(e.spatialReference) ?? Wkid(root.tileInfo?.spatialReference));
+            }
+            catch (SerializationException) { }
             var ti = root.tileInfo;
             if (ti == null)
             {
@@ -113,17 +133,19 @@ namespace RaiTilePackageManager
             }
             var resolutions = new Dictionary<int, double>();
             foreach (var lod in ti.lods ?? new LodJson[0]) resolutions[lod.level] = lod.resolution;
-            var sr = ti.spatialReference;
-            Check(sr == null ? (int?)null : sr.latestWkid > 0 ? sr.latestWkid : sr.wkid,
-                ti.origin?.x, ti.origin?.y, ti.rows, ti.cols, resolutions, root.tileImageInfo?.format ?? ti.format);
+            Check(Wkid(ti.spatialReference), ti.origin?.x, ti.origin?.y, ti.rows, ti.cols, resolutions, root.tileImageInfo?.format ?? ti.format);
         }
+
+        static int? Wkid(SpatialReferenceJson sr) => sr == null ? (int?)null : sr.latestWkid > 0 ? sr.latestWkid : sr.wkid;
+
+        static XElement El(XContainer c, string name) => c?.Descendants().FirstOrDefault(e => e.Name.LocalName == name);
+
+        static double? Num(XContainer c, string name) =>
+            double.TryParse(El(c, name)?.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : (double?)null;
 
         void ReadConfXml(Stream s)
         {
             var x = XDocument.Load(s);
-            XElement El(XContainer c, string name) => c?.Descendants().FirstOrDefault(e => e.Name.LocalName == name);
-            double? Num(XContainer c, string name) =>
-                double.TryParse(El(c, name)?.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : (double?)null;
             var origin = El(x, "TileOrigin");
             var resolutions = new Dictionary<int, double>();
             foreach (var lod in x.Descendants().Where(e => e.Name.LocalName == "LODInfo"))
@@ -131,6 +153,28 @@ namespace RaiTilePackageManager
                     resolutions[(int)id] = r;
             Check((int?)(Num(x, "LatestWKID") ?? Num(x, "WKID")), Num(origin, "X"), Num(origin, "Y"),
                 (int)(Num(x, "TileRows") ?? 0), (int)(Num(x, "TileCols") ?? 0), resolutions, El(x, "CacheTileFormat")?.Value);
+        }
+
+        void ReadConfCdi(Stream s)
+        {
+            var x = XDocument.Load(s);
+            if (Num(x, "XMin") is double xmin && Num(x, "YMin") is double ymin && Num(x, "XMax") is double xmax && Num(x, "YMax") is double ymax)
+                Bounds = Degrees(xmin, ymin, xmax, ymax, (int?)(Num(x, "LatestWKID") ?? Num(x, "WKID")));
+        }
+
+        /// <summary>
+        /// An extent as west, south, east, north in degrees, the order GEOlayers uses. Web Mercator metres are converted;
+        /// WGS 84 (4326) is already in degrees; anything else, or an empty extent, gives null.
+        /// </summary>
+        static double[] Degrees(double xmin, double ymin, double xmax, double ymax, int? wkid)
+        {
+            if (!(xmin < xmax && ymin < ymax)) return null; // also rejects NaN
+            double Clamp(double v, double limit) => Math.Max(-limit, Math.Min(limit, v));
+            if (wkid == 4326) return new[] { Clamp(xmin, 180), Clamp(ymin, 85.0511287798), Clamp(xmax, 180), Clamp(ymax, 85.0511287798) };
+            if (wkid.HasValue && Array.IndexOf(WebMercatorWkids, wkid.Value) < 0) return null;
+            double Lon(double x) => Clamp(x, OriginShift) / EarthRadius * 180 / Math.PI;
+            double Lat(double y) => (2 * Math.Atan(Math.Exp(Clamp(y, OriginShift) / EarthRadius)) - Math.PI / 2) * 180 / Math.PI;
+            return new[] { Lon(xmin), Lat(ymin), Lon(xmax), Lat(ymax) };
         }
 
         void Check(int? wkid, double? originX, double? originY, int rows, int cols, Dictionary<int, double> resolutions, string format)
@@ -246,7 +290,7 @@ namespace RaiTilePackageManager
                 if ((r = s.Read(scratch, 0, (int)Math.Min(count, scratch.Length))) == 0) throw new EndOfStreamException("Bundle troncato.");
         }
 
-        // root.json fields we need (the file also lists layers, legends, extents...); filled by the serializer.
+        // root.json fields we need (the file also lists layers, legends...); filled by the serializer.
 #pragma warning disable CS0649
         [DataContract] sealed class RootJson
         {
@@ -266,6 +310,12 @@ namespace RaiTilePackageManager
         [DataContract] sealed class PointJson { [DataMember] public double x, y; }
         [DataContract] sealed class LodJson { [DataMember] public int level; [DataMember] public double resolution; }
         [DataContract] sealed class FormatJson { [DataMember] public string format; }
+        [DataContract] sealed class ExtentsJson { [DataMember] public ExtentJson fullExtent, initialExtent; }
+        [DataContract] sealed class ExtentJson
+        {
+            [DataMember] public double? xmin, ymin, xmax, ymax;
+            [DataMember] public SpatialReferenceJson spatialReference;
+        }
 #pragma warning restore CS0649
     }
 }

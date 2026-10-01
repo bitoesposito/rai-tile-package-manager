@@ -72,14 +72,16 @@ namespace RaiTilePackageManager
         readonly NumericUpDown portBox = new NumericUpDown { Minimum = 1024, Maximum = 65535, Value = 8000, Width = 76, AccessibleName = "Porta" };
         readonly RaiButton serverButton = new RaiButton("Metti in onda", true, "Ferma");
         readonly Strap tally = new Strap();
-        readonly UrlButton localUrl = new UrlButton();
+        readonly UrlButton localUrl = new UrlButton { Margin = new Padding(0, 4, 0, 0) };
+        readonly GeoFields localGeo = new GeoFields();
 
         // Storage remoto
         readonly TextBox remoteBox = Ui.Field("Indirizzo del web server", readOnly: false);
         readonly RaiButton verifyButton = new RaiButton("Verifica connessione", true);
         readonly Strap remoteStrap = new Strap();
-        readonly Label remoteUrlHeading = Ui.Heading("URL da incollare in GEOlayers");
-        readonly UrlButton remoteUrl = new UrlButton { Note = "Fai clic per copiarlo e incollalo in GEOlayers." };
+        readonly Label remoteUrlHeading = Ui.Heading("Impostazioni per GEOlayers");
+        readonly UrlButton remoteUrl = new UrlButton { Note = "Fai clic per copiarlo e incollalo in GEOlayers.", Margin = new Padding(0, 4, 0, 0) };
+        readonly GeoFields remoteGeo = new GeoFields();
 
         TilePackage package;
         int packageTicket, addTicket;    // the latest load or lookup wins
@@ -96,7 +98,7 @@ namespace RaiTilePackageManager
         ExtractProgress progress;
         long progressTotal;
         TileServer server;
-        bool verifying;
+        bool verifying, remoteVerified;
 
         public MainForm(string[] startPaths)
         {
@@ -136,15 +138,15 @@ namespace RaiTilePackageManager
                     liveHint, liveStrap,
                     Ui.Heading("Server locale"),
                     portRow, tally,
-                    Ui.Heading("URL da incollare in GEOlayers"),
-                    localUrl,
-                    Ui.Hint("In GEOlayers 3 crea uno stile mappa personalizzato e incolla l'URL. Il server resta attivo finché questa finestra è aperta.")),
+                    Ui.Heading("Impostazioni per GEOlayers"),
+                    localUrl, localGeo,
+                    Ui.Hint("In GEOlayers 3 crea una Raster Source di tipo xyz. Il server resta attivo finché questa finestra è aperta.")),
                 Ui.Page(null,
                     Ui.Heading("Indirizzo del web server"),
                     Ui.Hint("La cartella del progetto pubblicata sul server, per esempio https://tiles.azienda.it/mappa."),
                     Ui.Line(0, remoteBox, verifyButton),
                     remoteStrap,
-                    remoteUrlHeading, remoteUrl,
+                    remoteUrlHeading, remoteUrl, remoteGeo,
                     Ui.Hint("La verifica scarica una tile del progetto scelto nella scheda In onda e la confronta con quella su disco.")),
             };
 
@@ -197,7 +199,7 @@ namespace RaiTilePackageManager
             remoteBox.TextChanged += (s, e) =>
             {
                 remoteStrap.Clear();
-                remoteUrlHeading.Visible = remoteUrl.Visible = false;
+                remoteVerified = remoteUrlHeading.Visible = remoteUrl.Visible = false;
                 UpdateState();
             };
             remoteBox.KeyDown += (s, e) =>
@@ -746,7 +748,7 @@ namespace RaiTilePackageManager
             {
                 remoteStrap.Show(result.Status, result.Title, result.Detail);
                 remoteUrl.Url = template;
-                remoteUrlHeading.Visible = remoteUrl.Visible = result.Status != Status.Error;
+                remoteVerified = remoteUrlHeading.Visible = remoteUrl.Visible = result.Status != Status.Error;
                 if (result.Status != Status.Error && dir != null)
                     _ = Task.Run(() =>
                     {
@@ -784,6 +786,10 @@ namespace RaiTilePackageManager
             portBox.Enabled = server == null;
             tabs[1].OnAir = server != null;
             localUrl.Url = $"http://localhost:{portBox.Value}/{{z}}/{{x}}/{{y}}.{liveProject?.Format ?? "png"}";
+            localGeo.SetProject(liveProject);
+            remoteGeo.SetProject(liveProject);
+            localGeo.Visible = liveProject != null;
+            remoteGeo.Visible = remoteVerified && liveProject != null; // Visible's getter is false on a hidden tab
             localUrl.Note = server != null ? "Fai clic per copiarlo e incollalo in GEOlayers."
                 : "Server fermo: mettilo in onda prima di usare l'URL.";
             localUrl.CopiedNote = server != null ? "Copiato negli appunti: incollalo in GEOlayers."
