@@ -10,7 +10,7 @@ Prende il posto dello script Python e di `python -m http.server`. Si usa senza r
 
 ## Scaricare e avviare
 
-Scarica l'exe dalla pagina [Releases](https://github.com/bitoesposito/rai-tile-package-manager/releases/latest) e aprilo con un doppio clic. È un solo file e non va installato: usa .NET Framework 4.8, già presente in Windows 10 e 11.
+Scarica `Rai-Package-tile-manager.zip` dalla pagina [Releases](https://github.com/bitoesposito/rai-tile-package-manager/releases/latest), estrai i file e apri `Rai - Package tile manager.exe` con un doppio clic. L'app non va installata: usa .NET Framework 4.8, già presente in Windows 10 e 11.
 
 L'exe non è firmato digitalmente, quindi al primo avvio Windows SmartScreen può mostrare "PC protetto da Windows". In quel caso fai clic su "Ulteriori informazioni" e poi su "Esegui comunque".
 
@@ -134,7 +134,7 @@ dotnet run --project tests
 | `src/FolderPicker.cs` | Selettore di cartelle di Esplora file |
 | `src/icon.svg` | L'icona dell'app; `src/app.ico` ne contiene le versioni da 16 a 256 px |
 
-A ogni push GitHub Actions esegue il self-check e compila l'exe, che si scarica dagli artifact della run. Per pubblicare una versione crea un tag `vX.Y.Z` e fai push del tag: l'exe e la licenza del font finiscono nella release. `PRODUCT.md` e `DESIGN.md` descrivono il prodotto e il design system.
+A ogni push GitHub Actions esegue il self-check e compila l'exe, che si scarica dagli artifact della run. Per pubblicare una versione crea un tag `vX.Y.Z` e fai push del tag: nella release finisce uno zip con l'exe e la licenza del font. `PRODUCT.md` e `DESIGN.md` descrivono il prodotto e il design system.
 
 ## Dettagli tecnici
 

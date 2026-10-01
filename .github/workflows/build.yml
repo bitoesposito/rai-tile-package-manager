@@ -1,7 +1,8 @@
 name: build
 
 # Every push and pull request runs the self-check and builds the exe, attached to the run as an artifact.
-# A tag vX.Y.Z also publishes the exe as a GitHub release.
+# A tag vX.Y.Z also publishes a release with a zip: GitHub turns spaces in asset names into dots,
+# so the exe keeps its exact name only inside the zip.
 on:
   push:
     branches: [main]
@@ -55,7 +56,6 @@ jobs:
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
-          "Rai - Package tile manager.exe#Rai - Package tile manager.exe"
-          "OFL.txt#Licenza del font Inter Tight (OFL.txt)"
+        run: |
+          zip -j Rai-Package-tile-manager.zip "Rai - Package tile manager.exe" OFL.txt
+          gh release create "$GITHUB_REF_NAME" Rai-Package-tile-manager.zip --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
