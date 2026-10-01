@@ -1,0 +1,12 @@
+bin/
+obj/
+.vs/
+*.user
+
+# Client data and the old script stay on this PC: the repository is public.
+resources/
+*.tpk
+*.tpkx
+
+# Impeccable decision-page logs (the surface brief in .impeccable/surfaces is kept)
+.impeccable/questions/

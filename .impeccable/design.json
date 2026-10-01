@@ -1,0 +1,449 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-01T17:24:35+00:00",
+  "title": "Design System: Rai - Package tile manager",
+  "extensions": {
+    "colorMeta": {
+      "band": {
+        "role": "primary",
+        "displayName": "Rai News Blue",
+        "canonical": "oklch(30.9% 0.214 264.1)",
+        "tonalRamp": [
+          "#00003A",
+          "#010080",
+          "#0128B1",
+          "#1D51D8",
+          "#3D76FF",
+          "#72A1FF",
+          "#A7C9FF",
+          "#E0EFFF"
+        ]
+      },
+      "band-soft": {
+        "role": "primary",
+        "displayName": "Pale Band Blue",
+        "canonical": "oklch(90.3% 0.047 276.2)",
+        "tonalRamp": [
+          "#07081E",
+          "#1F233C",
+          "#3B405B",
+          "#5A5F7C",
+          "#7A809F",
+          "#9DA3C3",
+          "#C0C7E9",
+          "#E6EDFF"
+        ]
+      },
+      "action": {
+        "role": "secondary",
+        "displayName": "rai.it Action Blue",
+        "canonical": "oklch(53.0% 0.217 260.1)",
+        "tonalRamp": [
+          "#00003A",
+          "#000081",
+          "#002BB2",
+          "#0054D9",
+          "#2579FF",
+          "#68A4FF",
+          "#A2CAFF",
+          "#DDF0FF"
+        ]
+      },
+      "action-hover": {
+        "role": "secondary",
+        "displayName": "Action Hover Blue",
+        "canonical": "oklch(51.9% 0.192 259.2)",
+        "tonalRamp": [
+          "#000039",
+          "#00017F",
+          "#0034A4",
+          "#0159CB",
+          "#317DF2",
+          "#67A4FF",
+          "#A1CBFF",
+          "#DBF0FF"
+        ]
+      },
+      "action-tint": {
+        "role": "secondary",
+        "displayName": "Action Tint",
+        "canonical": "oklch(95.9% 0.015 273.9)",
+        "tonalRamp": [
+          "#090B12",
+          "#23252D",
+          "#3F424A",
+          "#5E616A",
+          "#7F828C",
+          "#A2A5AF",
+          "#C6C9D3",
+          "#EBEEF9"
+        ]
+      },
+      "live": {
+        "role": "tertiary",
+        "displayName": "Live Red",
+        "canonical": "oklch(53.5% 0.186 25.3)",
+        "tonalRamp": [
+          "#220000",
+          "#510000",
+          "#850006",
+          "#B31922",
+          "#DC4644",
+          "#FF6D66",
+          "#FFB0A8",
+          "#FFE5E1"
+        ]
+      },
+      "ok": {
+        "role": "tertiary",
+        "displayName": "Signal Green",
+        "canonical": "oklch(54.8% 0.118 157.5)",
+        "tonalRamp": [
+          "#001202",
+          "#003110",
+          "#005327",
+          "#007446",
+          "#379766",
+          "#5EBB88",
+          "#83E1AB",
+          "#B8FFD6"
+        ]
+      },
+      "warn": {
+        "role": "tertiary",
+        "displayName": "Label Orange",
+        "canonical": "oklch(67.2% 0.220 37.2)",
+        "tonalRamp": [
+          "#210000",
+          "#4F0000",
+          "#820100",
+          "#B61600",
+          "#E73800",
+          "#FF754C",
+          "#FFB198",
+          "#FFE6DB"
+        ]
+      },
+      "navy": {
+        "role": "neutral",
+        "displayName": "Gallery Navy",
+        "canonical": "oklch(22.8% 0.068 269.5)",
+        "tonalRamp": [
+          "#030627",
+          "#182246",
+          "#334066",
+          "#525F89",
+          "#7281AC",
+          "#94A4D1",
+          "#B7C8F7",
+          "#E2EEFF"
+        ]
+      },
+      "monitor-grid": {
+        "role": "neutral",
+        "displayName": "Monitor Grid",
+        "canonical": "oklch(30.5% 0.091 270.1)",
+        "tonalRamp": [
+          "#030230",
+          "#151F50",
+          "#303E72",
+          "#4D5E95",
+          "#6D7FB9",
+          "#8FA2DE",
+          "#B2C7FF",
+          "#E3EEFF"
+        ]
+      },
+      "monitor-grid-hover": {
+        "role": "neutral",
+        "displayName": "Monitor Grid Lit",
+        "canonical": "oklch(41.2% 0.141 269.7)",
+        "tonalRamp": [
+          "#030035",
+          "#0F1468",
+          "#26378B",
+          "#4259B0",
+          "#617CD6",
+          "#829FFD",
+          "#AFC6FF",
+          "#E2EEFF"
+        ]
+      },
+      "slate": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "canonical": "oklch(49.4% 0.036 235.2)",
+        "tonalRamp": [
+          "#000D18",
+          "#122834",
+          "#2F4552",
+          "#4E6573",
+          "#6E8695",
+          "#90A9B8",
+          "#B4CDDD",
+          "#D9F3FF"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "oklch(88.9% 0.028 270.4)",
+        "tonalRamp": [
+          "#070A17",
+          "#202433",
+          "#3C4152",
+          "#5B6172",
+          "#7C8294",
+          "#9EA5B8",
+          "#C2C9DC",
+          "#E7EEFF"
+        ]
+      },
+      "disabled": {
+        "role": "neutral",
+        "displayName": "Disabled Blue-Grey",
+        "canonical": "oklch(81.9% 0.042 270.4)",
+        "tonalRamp": [
+          "#05091D",
+          "#1D243A",
+          "#394159",
+          "#58607A",
+          "#78829C",
+          "#9BA4C0",
+          "#BEC8E6",
+          "#E3EEFF"
+        ]
+      },
+      "desk": {
+        "role": "neutral",
+        "displayName": "Desk",
+        "canonical": "oklch(97.7% 0.011 274.9)",
+        "tonalRamp": [
+          "#0A0B10",
+          "#23252A",
+          "#404248",
+          "#5F6168",
+          "#808289",
+          "#A3A5AC",
+          "#C7C9D0",
+          "#ECEEF6"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel White",
+        "canonical": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "broadcast-title": {
+        "displayName": "Broadcast title",
+        "purpose": "Program monitor lower third only."
+      },
+      "app-name": {
+        "displayName": "App name",
+        "purpose": "Name beside the Rai mark in the header band."
+      },
+      "url": {
+        "displayName": "URL",
+        "purpose": "GEOlayers address in the URL button."
+      },
+      "heading": {
+        "displayName": "Heading",
+        "purpose": "Section headings on the desk."
+      },
+      "tab": {
+        "displayName": "Tab",
+        "purpose": "Header tabs."
+      },
+      "broadcast-detail": {
+        "displayName": "Broadcast detail",
+        "purpose": "Monitor lower-third detail."
+      },
+      "strap-title": {
+        "displayName": "Strap title",
+        "purpose": "Status strap titles and tally labels."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "All buttons, sentence case."
+      },
+      "strap-detail": {
+        "displayName": "Strap detail",
+        "purpose": "Strap detail lines and URL note."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Native controls, hints, labels (system font)."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "on-air-wipe",
+        "value": "240ms, reveal = 0.35 + 0.65 * (1 - 2^(-10t)), clip from the left",
+        "purpose": "Entrance of straps and the monitor lower third when title or state changes; skipped when Windows UI effects are off."
+      },
+      {
+        "name": "copied-hold",
+        "value": "2000ms",
+        "purpose": "How long the URL button shows its copied state."
+      }
+    ],
+    "focus": [
+      {
+        "name": "button-ring",
+        "value": "2px inner ring inset 3px; white on primary, navy on secondary"
+      },
+      {
+        "name": "field-frame",
+        "value": "2px action blue frame"
+      },
+      {
+        "name": "monitor-frame",
+        "value": "2px white frame"
+      },
+      {
+        "name": "tab",
+        "value": "1px dotted white rectangle"
+      }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The page's main action, docked in the bottom action bar.",
+      "html": "<button class=\"ds-btn-primary\">Converti</button>",
+      "css": ".ds-btn-primary{font-family:'Inter Tight','Segoe UI',sans-serif;font-weight:600;font-size:13px;height:32px;min-width:112px;padding:0 16px;background:#0060E6;color:#fff;border:1px solid #0060E6;border-radius:0;cursor:pointer}.ds-btn-primary:hover{background:#1061D4;border-color:#1061D4}.ds-btn-primary:active{background:#000099;border-color:#000099}.ds-btn-primary:focus-visible{outline:2px solid #fff;outline-offset:-5px}.ds-btn-primary:disabled{background:#B9C3E0;border-color:#B9C3E0;cursor:default}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Pickers and secondary actions beside a field.",
+      "html": "<button class=\"ds-btn-secondary\">Cambia posizione…</button>",
+      "css": ".ds-btn-secondary{font-family:'Inter Tight','Segoe UI',sans-serif;font-weight:600;font-size:13px;height:32px;min-width:112px;padding:0 16px;background:#fff;color:#0060E6;border:1px solid #0060E6;border-radius:0;cursor:pointer}.ds-btn-secondary:hover{background:#EEF1FC}.ds-btn-secondary:active{background:#D3DAEE}.ds-btn-secondary:focus-visible{outline:2px solid #10193C;outline-offset:-5px}.ds-btn-secondary:disabled{color:#4E6573;border-color:#D3DAEE;background:#fff}"
+    },
+    {
+      "name": "Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "A 32 px square frame around a native text box; action blue while typing.",
+      "html": "<input class=\"ds-field\" placeholder=\"Compare quando scegli il pacchetto\">",
+      "css": ".ds-field{font-family:'Segoe UI',sans-serif;font-size:12px;height:32px;box-sizing:border-box;width:360px;padding:0 9px;background:#fff;color:#10193C;border:1px solid #D3DAEE;border-radius:0;outline:none}.ds-field:focus-visible,.ds-field:focus{border:2px solid #0060E6;padding:0 8px}.ds-field:disabled{background:#F0F0F0}"
+    },
+    {
+      "name": "Header Tabs",
+      "kind": "nav",
+      "refersTo": "tab",
+      "description": "Tabs on the blue band; the on-air tab carries a red tally square.",
+      "html": "<nav class=\"ds-tabs\"><a class=\"ds-tab\">Importa</a><a class=\"ds-tab ds-tab-on\" aria-current=\"page\"><i class=\"ds-tally\"></i>In onda</a><a class=\"ds-tab\">Storage remoto</a></nav>",
+      "css": ".ds-tabs{display:flex;background:#000099;height:56px;padding:0 18px}.ds-tab{font-family:'Inter Tight','Segoe UI',sans-serif;font-weight:600;font-size:14px;color:#D6DDFF;display:flex;align-items:center;gap:8px;padding:0 14px;position:relative;cursor:pointer}.ds-tab:hover::after{content:'';position:absolute;left:12px;right:12px;bottom:0;height:1px;background:#D6DDFF}.ds-tab-on{color:#fff}.ds-tab-on::after,.ds-tab-on:hover::after{content:'';position:absolute;left:12px;right:12px;bottom:0;height:3px;background:#fff}.ds-tab:focus-visible{outline:1px dotted #fff;outline-offset:-10px}.ds-tally{width:9px;height:9px;background:#C22C2F;box-shadow:inset 0 0 0 1px #fff;display:inline-block}"
+    },
+    {
+      "name": "Status Strap",
+      "kind": "custom",
+      "refersTo": "strap",
+      "description": "The sottopancia every status is drawn as; wipes in from the left.",
+      "html": "<div class=\"ds-strap\"><div class=\"ds-strap-tab ds-ok\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"4,10.2 8.6,14.5 16.3,6\"/></svg></div><div class=\"ds-strap-text\"><b>mappa_esempio</b><span>Tile PNG · zoom 0-3 · 1 pacchetto importato</span></div></div>",
+      "css": "@keyframes ds-wipe{from{clip-path:inset(0 65% 0 0)}to{clip-path:inset(0 0 0 0)}}.ds-strap{display:flex;background:#000099;color:#fff;width:520px;animation:ds-wipe 240ms cubic-bezier(0.16,1,0.3,1)}.ds-strap-tab{width:37px;display:flex;align-items:center;justify-content:center;background:#0060E6}.ds-ok{background:#1F8555}.ds-strap-text{display:flex;flex-direction:column;gap:2px;padding:9px 15px}.ds-strap-text b{font-family:'Inter Tight','Segoe UI',sans-serif;font-weight:700;font-size:13px}.ds-strap-text span{font-family:'Inter Tight','Segoe UI',sans-serif;font-size:12px;color:#D6DDFF}@media (prefers-reduced-motion:reduce){.ds-strap{animation:none}}"
+    },
+    {
+      "name": "On-Air Tally",
+      "kind": "custom",
+      "refersTo": "strap-tally-on-air",
+      "description": "The server strap: IN ONDA on live red, FUORI ONDA on slate.",
+      "html": "<div class=\"ds-tally-strap\"><div class=\"ds-tally-tab\">IN ONDA</div><div class=\"ds-tally-text\"><b>GEOlayers può caricare le tile da questo PC</b><span>0 richieste.</span></div></div>",
+      "css": ".ds-tally-strap{display:flex;background:#000099;color:#fff;width:520px}.ds-tally-tab{font-family:'Inter Tight','Segoe UI',sans-serif;font-weight:700;font-size:13px;background:#C22C2F;display:flex;align-items:center;padding:0 15px}.ds-tally-text{display:flex;flex-direction:column;gap:2px;padding:9px 15px}.ds-tally-text b{font-family:'Inter Tight','Segoe UI',sans-serif;font-weight:700;font-size:13px}.ds-tally-text span{font-family:'Inter Tight','Segoe UI',sans-serif;font-size:12px;color:#D6DDFF}"
+    },
+    {
+      "name": "Program Monitor",
+      "kind": "custom",
+      "refersTo": "program-monitor",
+      "description": "The drop target: a navy tile-grid field with a broadcast-scale lower third.",
+      "html": "<div class=\"ds-monitor\" tabindex=\"0\"><div class=\"ds-monitor-strap\"><div class=\"ds-monitor-tab\"><svg width=\"28\" height=\"28\" viewBox=\"0 0 28 28\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"14\" y1=\"7.8\" x2=\"14\" y2=\"16\"/><polyline points=\"10.6,12.9 14,16.2 17.4,12.9\"/><polyline points=\"7.8,16.5 7.8,20.2 20.2,20.2 20.2,16.5\"/></svg></div><div class=\"ds-monitor-text\"><b>Trascina qui il tile package</b><span>Il file .tpkx o .tpk esportato da ArcGIS Pro. Puoi anche fare clic qui per sceglierlo.</span></div></div></div>",
+      "css": ".ds-monitor{position:relative;height:214px;width:720px;background-color:#10193C;background-image:linear-gradient(#1E2A5C 1px,transparent 1px),linear-gradient(90deg,#1E2A5C 1px,transparent 1px);background-size:44px 44px;background-position:22px 14px;cursor:pointer}.ds-monitor:hover{background-image:linear-gradient(#2E4196 1px,transparent 1px),linear-gradient(90deg,#2E4196 1px,transparent 1px)}.ds-monitor:focus-visible{outline:2px solid #fff;outline-offset:-2px}.ds-monitor-strap{position:absolute;left:24px;bottom:24px;max-width:660px;right:24px;display:flex;background:#000099;color:#fff}.ds-monitor-tab{width:60px;background:#0060E6;display:flex;align-items:center;justify-content:center}.ds-monitor-text{display:flex;flex-direction:column;gap:2px;padding:14px 22px}.ds-monitor-text b{font-family:'Inter Tight','Segoe UI',sans-serif;font-weight:700;font-size:21px}.ds-monitor-text span{font-family:'Inter Tight','Segoe UI',sans-serif;font-size:14px;color:#D6DDFF}"
+    },
+    {
+      "name": "URL Button",
+      "kind": "custom",
+      "refersTo": "url-button",
+      "description": "The GEOlayers URL with a project tile; click to copy.",
+      "html": "<button class=\"ds-url\"><span class=\"ds-url-thumb\"></span><span class=\"ds-url-text\"><span class=\"ds-url-addr\">http://localhost:8000/<em>{z}</em>/<em>{x}</em>/<em>{y}</em>.png</span><span class=\"ds-url-note\">Fai clic per copiarlo e incollalo in GEOlayers.</span></span><svg class=\"ds-url-copy\" width=\"18\" height=\"18\" viewBox=\"0 0 18 18\" fill=\"#fff\" stroke=\"#0060E6\" stroke-width=\"1.5\"><rect x=\"5\" y=\"1\" width=\"12\" height=\"12\"/><rect x=\"1\" y=\"5\" width=\"12\" height=\"12\"/></svg></button>",
+      "css": ".ds-url{display:flex;align-items:center;gap:16px;width:720px;height:92px;padding:14px;background:#fff;border:1px solid #D3DAEE;border-radius:0;cursor:pointer;text-align:left}.ds-url:hover{background:#EEF1FC;border-color:#0060E6}.ds-url:active{background:#D3DAEE}.ds-url:focus-visible{outline:none;border:2px solid #0060E6}.ds-url-thumb{width:64px;height:64px;flex:none;background-color:#10193C;background-image:linear-gradient(90deg,transparent 33%,#1E2A5C 33%,#1E2A5C calc(33% + 1px),transparent calc(33% + 1px),transparent 66%,#1E2A5C 66%,#1E2A5C calc(66% + 1px),transparent calc(66% + 1px));outline:1px solid #D3DAEE}.ds-url-text{flex:1;display:flex;flex-direction:column;gap:4px}.ds-url-addr{font-family:'Inter Tight','Segoe UI',sans-serif;font-size:17px;color:#10193C}.ds-url-addr em{font-style:normal;color:#0060E6}.ds-url-note{font-family:'Inter Tight','Segoe UI',sans-serif;font-size:12px;color:#4E6573}.ds-url-copy{flex:none;margin-right:6px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The TG Sottopancia",
+    "overview": "**Creative North Star: \"The TG Sottopancia\"**\n\nThe app speaks the on-air language of a Rai News bulletin. Every status the operator needs to read is a lower third: a Rai News blue band, a full-height coloured tab on its left carrying the state, a bold white title and a softer detail line. The running local server is IN ONDA, a red tally exactly like the one in a studio gallery. The package is dropped on a \"program monitor\", a dark navy field ruled with the tile grid the app writes. Everything else (headings, fields, radio buttons, hints) sits quietly on a pale blue desk, so the dark on-air elements are what the eye reads first.\n\nIt is a native Windows 11 tool (WinForms, GDI/GDI+), dense and calm, in Italian. Standard controls stay standard where users expect them (radio buttons, text boxes, file dialogs, a system body font); the brand shows in a small set of drawn components: the header band with the Rai mark, the straps, the monitor, the square buttons, the URL button. The world refuses the stacked grey form and the generic dashed-dropzone dashboard.\n\nBrand sources are the public rai.it and rainews.it stylesheets and the Rai 2016 identity (the square as the dominant shape); see PRODUCT.md. The official Rai square mark is used in the header, reversed in white, at the user's request.",
+    "keyCharacteristics": [
+      "Rai News blue bands with white Inter Tight on a light blue-white desk.",
+      "State carried by the colour of a full-height tab plus a drawn glyph or a short uppercase label, never by colour alone.",
+      "Square corners everywhere; flat, no shadows.",
+      "One entrance motion: the lower-third wipe from the left.",
+      "Full fallback to system colours in Windows high-contrast mode."
+    ],
+    "rules": [
+      {
+        "name": "The Two Blues Rule",
+        "body": "Rai News Blue is a surface (bands, straps); rai.it Action Blue is an affordance (buttons, focus, links, tokens). A filled action-blue rectangle means \"press me\"; a navy-blue band means \"read me\". Never swap them.",
+        "section": "colors"
+      },
+      {
+        "name": "The Red Is On Air Rule",
+        "body": "Live Red appears only for the IN ONDA tally and for errors. Warnings are orange, success is green. (The Windows close-button hover red in the title bar is the platform's own colour, not Live Red.)",
+        "section": "colors"
+      },
+      {
+        "name": "The High-Contrast Fallback Rule",
+        "body": "Every colour role is read through the theme and resolves to a system colour when Windows high contrast is on. No colour is hard-coded at the point of use.",
+        "section": "colors"
+      },
+      {
+        "name": "The Padding Follows The Title Rule",
+        "body": "A lower third's paddings derive from its title line height (horizontal 0.8x, vertical 0.5x), so a broadcast-size monitor strap keeps the proportions of a status strap. Never set strap padding in fixed pixels.",
+        "section": "typography"
+      },
+      {
+        "name": "The Sentence Case Rule",
+        "body": "Headings, buttons and strap titles are sentence case Italian. Uppercase is reserved for the on-air tally labels.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Desk Rule",
+        "body": "Separation comes from tone and 1 px rules, never from shadows or lifts.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do draw every status as a strap: Rai News Blue band, full-height state tab, drawn glyph, Bold title, softer detail.",
+      "Do keep Action Blue for things you can press or focus, and Rai News Blue for things you read.",
+      "Do keep text fields and buttons in a row at the same 32 px height, with the field taking the spare width.",
+      "Do dock the page's primary action in the bottom action bar.",
+      "Do resolve every colour through the theme so high-contrast mode falls back to system colours.",
+      "Do scale every metric by DeviceDpi / 96."
+    ],
+    "donts": [
+      "Don't round the corners of any drawn component (native radio buttons keep their own shape).",
+      "Don't use shadows or lifted cards; the desk is flat.",
+      "Don't use Live Red outside the on-air tally and errors.",
+      "Don't signal state by colour alone; the tab always carries a glyph or a label.",
+      "Don't use font glyphs or icon fonts for state icons; draw them as 2 px round-capped strokes.",
+      "Don't draw the drop target as a dashed outline box; it is the program monitor.",
+      "Don't replace native radio buttons, text boxes or file dialogs with custom look-alikes."
+    ]
+  }
+}

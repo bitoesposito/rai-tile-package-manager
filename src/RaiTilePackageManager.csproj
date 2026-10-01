@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- .NET Framework 4.8 ships with Windows 10/11: the build is a single small .exe with nothing to install. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>Rai - Package tile manager</AssemblyName>
+    <RootNamespace>RaiTilePackageManager</RootNamespace>
+    <Version>1.0.0</Version>
+    <Product>Rai - Package tile manager</Product>
+    <AssemblyTitle>Rai - Package tile manager</AssemblyTitle>
+    <Copyright>© Esri Italia</Copyright>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <GenerateSupportedRuntime>false</GenerateSupportedRuntime>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <EmbeddedResource Include="app.ico" LogicalName="app.ico" />
+    <EmbeddedResource Include="fonts/InterTight-Regular.ttf" LogicalName="InterTight-Regular.ttf" />
+    <EmbeddedResource Include="fonts/InterTight-SemiBold.ttf" LogicalName="InterTight-SemiBold.ttf" />
+    <EmbeddedResource Include="fonts/InterTight-Bold.ttf" LogicalName="InterTight-Bold.ttf" />
+  </ItemGroup>
+
+</Project>

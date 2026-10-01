@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Self-check of the conversion core and the tile server, on Windows or Linux: dotnet run in this folder. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../src/TilePackage.cs;../src/TileFolder.cs;../src/TileServer.cs" />
+  </ItemGroup>
+
+</Project>
