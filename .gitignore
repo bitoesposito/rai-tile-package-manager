@@ -10,3 +10,6 @@ resources/
 
 # Impeccable decision-page logs (the surface brief in .impeccable/surfaces is kept)
 .impeccable/questions/
+
+# CI staging folder
+dist/

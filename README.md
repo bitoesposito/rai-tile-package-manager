@@ -134,7 +134,7 @@ dotnet run --project tests
 | `src/FolderPicker.cs` | Selettore di cartelle di Esplora file |
 | `src/icon.svg` | L'icona dell'app; `src/app.ico` ne contiene le versioni da 16 a 256 px |
 
-Per pubblicare una versione crea un tag `vX.Y.Z` e fai push del tag: GitHub Actions esegue il self-check, compila l'exe e lo allega alla release. `PRODUCT.md` e `DESIGN.md` descrivono il prodotto e il design system.
+A ogni push GitHub Actions esegue il self-check e compila l'exe, che si scarica dagli artifact della run. Per pubblicare una versione crea un tag `vX.Y.Z` e fai push del tag: l'exe e la licenza del font finiscono nella release. `PRODUCT.md` e `DESIGN.md` descrivono il prodotto e il design system.
 
 ## Dettagli tecnici
 

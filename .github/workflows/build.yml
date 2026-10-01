@@ -1,6 +1,7 @@
 name: build
 
-# Every push and pull request runs the self-check and builds the exe; a tag vX.Y.Z also publishes it as a release.
+# Every push and pull request runs the self-check and builds the exe, attached to the run as an artifact.
+# A tag vX.Y.Z also publishes the exe as a GitHub release.
 on:
   push:
     branches: [main]
@@ -8,7 +9,7 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -31,10 +32,30 @@ jobs:
           else
             dotnet build src -c Release
           fi
+          mkdir dist
+          cp "src/bin/Release/net48/Rai - Package tile manager.exe" src/fonts/OFL.txt dist/
 
-      - name: Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        shell: bash
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rai-package-tile-manager
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: rai-package-tile-manager
+
+      - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" "src/bin/Release/net48/Rai - Package tile manager.exe#Rai - Package tile manager.exe" --title "$GITHUB_REF_NAME" --generate-notes
+        run: >
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
+          "Rai - Package tile manager.exe#Rai - Package tile manager.exe"
+          "OFL.txt#Licenza del font Inter Tight (OFL.txt)"
