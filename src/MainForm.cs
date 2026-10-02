@@ -48,8 +48,8 @@ namespace RaiTilePackageManager
         readonly Strap packageStrap = new Strap();
         readonly RadioButton newChoice = Ui.Choice("Nuovo progetto");
         readonly RadioButton addChoice = Ui.Choice("Aggiungi a un progetto esistente");
-        readonly TextBox newPathBox = Ui.Field("Cartella del nuovo progetto");
-        readonly TextBox addPathBox = Ui.Field("Progetto a cui aggiungere il pacchetto");
+        readonly TextBox newPathBox = Ui.Field("Cartella del nuovo progetto", "Compare quando scegli il pacchetto");
+        readonly TextBox addPathBox = Ui.Field("Progetto a cui aggiungere il pacchetto", "Nessun progetto scelto");
         readonly RaiButton locationButton = new RaiButton("Cambia posizione…", false, "Scegli progetto…");
         readonly RaiButton projectButton = new RaiButton("Scegli progetto…", false, "Cambia posizione…");
         readonly Label newHint = Ui.Hint("L'app crea una cartella apposta per il progetto, con il nome del pacchetto.");
@@ -67,7 +67,7 @@ namespace RaiTilePackageManager
         readonly Control newRow, addRow;
 
         // In onda
-        readonly TextBox liveBox = Ui.Field("Progetto da mettere in onda");
+        readonly TextBox liveBox = Ui.Field("Progetto da mettere in onda", "Nessun progetto scelto");
         readonly RaiButton liveButton = new RaiButton("Cambia…", false);
         readonly Label liveHint = Ui.Hint("Scegli la cartella di un progetto. Dopo una conversione l'app propone quella appena creata.");
         readonly Strap liveStrap = new Strap();
@@ -78,7 +78,7 @@ namespace RaiTilePackageManager
         readonly GeoFields localGeo = new GeoFields();
 
         // Storage remoto
-        readonly TextBox remoteBox = Ui.Field("Indirizzo del web server", readOnly: false);
+        readonly TextBox remoteBox = Ui.Field("Indirizzo del web server", "es. https://tiles.azienda.it/mappa", readOnly: false);
         readonly RaiButton verifyButton = new RaiButton("Verifica connessione", true);
         readonly Strap remoteStrap = new Strap();
         readonly Label remoteUrlHeading = Ui.Heading("Impostazioni per GEOlayers");
@@ -145,7 +145,7 @@ namespace RaiTilePackageManager
                     Ui.Hint("In GEOlayers 3 crea una Raster Source di tipo xyz. Il server resta attivo finché questa finestra è aperta.")),
                 Ui.Page(null,
                     Ui.Heading("Indirizzo del web server"),
-                    Ui.Hint("La cartella del progetto pubblicata sul server, per esempio https://tiles.azienda.it/mappa."),
+                    Ui.Hint("L'indirizzo della cartella del progetto pubblicata sul web server."),
                     Ui.Line(0, remoteBox, verifyButton),
                     remoteStrap,
                     remoteUrlHeading, remoteUrl, remoteGeo,
@@ -433,13 +433,8 @@ namespace RaiTilePackageManager
             ShowNewDir();
         }
 
-        /// <summary>The new project's folder, or a muted line saying when it appears (a read-only box shows no cue banner).</summary>
-        void ShowNewDir()
-        {
-            bool known = newDir != null || location != null;
-            newPathBox.Text = newDir ?? location ?? "Compare quando scegli il pacchetto";
-            newPathBox.ForeColor = known ? Theme.Ink : Theme.Muted;
-        }
+        /// <summary>The new project's folder; empty (the placeholder) until a package gives it a place.</summary>
+        void ShowNewDir() => newPathBox.Text = newDir ?? location ?? "";
 
         void DestinationChanged()
         {

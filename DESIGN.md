@@ -248,12 +248,13 @@ Square, sized by their longest possible label so changing text never moves the r
 
 ### Inputs / Fields
 - **Style:** native borderless text box inside a 32 px square frame, white, 1 px Rule border, 9 px side padding.
+- **Placeholder:** every field shows one while empty: the native cue banner when editable, painted in Slate over read-only boxes (which draw none).
 - **Focus:** frame turns 2 px Action Blue while typing (read-only path fields do not light up).
 - **Disabled:** the frame fills with the system disabled colour, following the box.
 - **Read-only:** path and URL fields stay out of the Tab order; the button beside them is the stop.
 
 ### Navigation
-Header tabs on the blue band, right-aligned before the window buttons: SemiBold 10.5pt, 56 px tall, 10 px side padding, so labels sit 20 px apart. Selected is white with a 3 px white bar under the label; hover shows a 1 px pale bar; focus a dotted white rectangle. While the server is on air the "In onda" tab carries a 10 px Live Red dot with a 1 px white edge before its label, on every tab.
+Header tabs on the blue band, right-aligned before the window buttons: SemiBold 10.5pt, 56 px tall, 6 px side padding, so labels sit 12 px apart. Selected is white with a 3 px white bar under the label; hover shows a 1 px pale bar; focus a dotted white rectangle. While the server is on air the "In onda" tab carries a 10 px Live Red dot with a 1 px white edge before its label, on every tab.
 
 ### Status Strap (signature)
 The sottopancia: Rai News Blue band, a full-height tab on the left in the state colour (Action Blue info, green ok, orange warning, Live Red error) carrying a drawn white glyph, a Bold white title and an optional pale band-blue detail. It sizes its height to its text and wraps to the column. The tally variant replaces the glyph with a text tab: IN ONDA on Live Red, FUORI ONDA on Slate. Entrance: a wipe from the left, exponential ease-out over 240 ms starting a third visible; ticking detail counters do not replay it; skipped when Windows animations are off.

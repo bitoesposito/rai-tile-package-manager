@@ -471,7 +471,7 @@ namespace RaiTilePackageManager
 
         float K => DeviceDpi / 96f;
         const TextFormatFlags LabelFlags = TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding;
-        int Pad => (int)(10 * K); // each side: labels sit 20 px apart
+        int Pad => (int)(6 * K); // each side: labels sit 12 px apart
         int TallySize => (int)(10 * K);
         int TallyGap => (int)(7 * K);
 
@@ -630,6 +630,33 @@ namespace RaiTilePackageManager
             e.Graphics.Clear(Theme.Rule);
             using (var fill = new SolidBrush(Theme.Action)) e.Graphics.FillRectangle(fill, 0, 0, (int)(Width * value), Height);
         }
+    }
+
+    /// <summary>
+    /// A text box with a placeholder shown while it is empty: the native cue banner when editable; a read-only edit control
+    /// draws none, so for those the placeholder is painted over the empty box after each WM_PAINT.
+    /// </summary>
+    sealed class InputBox : TextBox
+    {
+        public string Placeholder { get; set; }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            if (!ReadOnly && !string.IsNullOrEmpty(Placeholder)) SendMessage(Handle, 0x1501 /* EM_SETCUEBANNER */, (IntPtr)1, Placeholder);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+            if (m.Msg == 0x000F /* WM_PAINT */ && ReadOnly && TextLength == 0 && !string.IsNullOrEmpty(Placeholder))
+                using (var g = CreateGraphics())
+                    TextRenderer.DrawText(g, Placeholder, Font, ClientRectangle, Theme.Muted,
+                        TextFormatFlags.TextBoxControl | TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        static extern IntPtr SendMessage(IntPtr window, int message, IntPtr wParam, string lParam);
     }
 
     /// <summary>The frame of a text box or a numeric box: as tall as the buttons beside it; the border turns action blue while typing.</summary>
@@ -1148,10 +1175,10 @@ namespace RaiTilePackageManager
         };
 
         /// <summary>A text box; read-only ones show a path or a URL and stay out of the Tab order (their buttons are in it).</summary>
-        public static TextBox Field(string accessibleName, bool readOnly = true) => new TextBox
+        public static TextBox Field(string accessibleName, string placeholder, bool readOnly = true) => new InputBox
         {
             ReadOnly = readOnly, TabStop = !readOnly, BorderStyle = BorderStyle.FixedSingle, BackColor = Theme.Panel, ForeColor = Theme.Ink,
-            AccessibleName = accessibleName,
+            AccessibleName = accessibleName, AccessibleDescription = placeholder, Placeholder = placeholder,
         };
 
         /// <summary>A row of controls; the one at <paramref name="stretch"/> takes the remaining width.</summary>
