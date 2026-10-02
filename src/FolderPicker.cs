@@ -4,23 +4,12 @@ using System.Windows.Forms;
 
 namespace RaiTilePackageManager
 {
-    /// <summary>
-    /// The modern Explorer folder picker (address bar, paste of \\server\share paths, quick access):
-    /// .NET Framework's FolderBrowserDialog still shows the old tree, so this asks the shell directly.
-    /// </summary>
+    /// <summary>The Explorer folder picker, with address bar and \\server\share paths; FolderBrowserDialog still shows the old tree.</summary>
     static class FolderPicker
     {
         public static string Show(IWin32Window owner, string title, string initialFolder)
         {
-            IFileDialog dialog;
-            try
-            {
-                dialog = (IFileDialog)new FileOpenDialog();
-            }
-            catch (COMException)
-            {
-                return ShowClassic(owner, title, initialFolder);
-            }
+            var dialog = (IFileDialog)new FileOpenDialog();
             try
             {
                 dialog.SetOptions(FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM | FOS_NOCHANGEDIR);
@@ -41,12 +30,6 @@ namespace RaiTilePackageManager
             {
                 Marshal.ReleaseComObject(dialog);
             }
-        }
-
-        static string ShowClassic(IWin32Window owner, string title, string initialFolder)
-        {
-            using (var dialog = new FolderBrowserDialog { Description = title, SelectedPath = initialFolder ?? "" })
-                return dialog.ShowDialog(owner) == DialogResult.OK ? dialog.SelectedPath : null;
         }
 
         const uint FOS_NOCHANGEDIR = 0x8, FOS_PICKFOLDERS = 0x20, FOS_FORCEFILESYSTEM = 0x40;

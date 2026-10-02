@@ -43,9 +43,8 @@ namespace RaiTilePackageManager
         static readonly char[] WindowsNameChars = Path.GetInvalidFileNameChars().Union("<>:\"/\\|?*").ToArray();
 
         /// <summary>
-        /// The project in <paramref name="dir"/>, or null when the folder is not one. A project holds metadata.json,
-        /// or nothing but zoom folders (the output of the old Python script): a Desktop never qualifies.
-        /// Throws when the drive or the network share is unreachable.
+        /// The project in <paramref name="dir"/>, or null. A project has a metadata.json or only zoom folders (the old
+        /// Python script's output), so a Desktop never qualifies. Throws when the drive or the share is unreachable.
         /// </summary>
         public static ProjectInfo Open(string dir)
         {
@@ -81,7 +80,7 @@ namespace RaiTilePackageManager
             for (int up = 1; project == null && up <= 2 && d != null; up++, d = d.Parent)
             {
                 try { project = Open(d.FullName); }
-                catch (Exception e) when (e is UnauthorizedAccessException || e is IOException) { break; } // parent not readable: not ours to judge
+                catch (Exception e) when (e is UnauthorizedAccessException || e is IOException) { break; } // parent not readable: stop looking
             }
             return project;
         }
@@ -159,9 +158,8 @@ namespace RaiTilePackageManager
         }
 
         /// <summary>
-        /// The union of the packages' extents; a re-import of the same file replaces its older entry. Null as soon as one
-        /// package has no extent recorded (imported by the old script or by an earlier build): with partial bounds GEOlayers
-        /// would skip that package's tiles.
+        /// The union of the packages' extents, counting only the latest import of each file. Null if any package has no
+        /// extent recorded: partial bounds would make GEOlayers skip its tiles.
         /// </summary>
         static double[] Union(List<SourceInfo> sources)
         {

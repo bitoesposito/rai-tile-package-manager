@@ -89,8 +89,8 @@ namespace RaiTilePackageManager
     enum Glyph { None, Info, Ok, Warning, Error, Drop }
 
     /// <summary>
-    /// The lower third ("sottopancia") every status is drawn as: a blue band, a full-height tab carrying the state
-    /// as a drawn glyph or a short label, a bold title and an optional detail. Shared by Strap and DropZone.
+    /// The lower third ("sottopancia") every status is drawn as: blue band, full-height tab with a glyph or a short
+    /// label, bold title, optional detail. Shared by Strap and DropZone.
     /// </summary>
     static class Sottopancia
     {
@@ -164,7 +164,7 @@ namespace RaiTilePackageManager
             g.Restore(state);
         }
 
-        /// <summary>The state icons: one 2 px round-capped stroke, drawn, never font glyphs.</summary>
+        /// <summary>The state icons, drawn as 2 px round-capped strokes.</summary>
         public static void DrawGlyph(Graphics g, Rectangle box, Glyph glyph, float k)
         {
             if (glyph == Glyph.None) return;
@@ -310,12 +310,12 @@ namespace RaiTilePackageManager
     }
 
     /// <summary>
-    /// The program monitor: a dark field of tiles where the package is dropped, or clicked to browse; its lower third
-    /// says what is on air in this tab. Keyboard: Enter or Space browses.
+    /// The program monitor: drop the package on it, or click it (or press Enter or Space) to browse. Its lower third
+    /// shows the package's state.
     /// </summary>
     sealed class DropZone : Control
     {
-        // Dropping the package is the main action: its lower third is drawn at broadcast scale, not status scale.
+        // The main action, so its lower third is drawn at broadcast size.
         static readonly Font TitleFont = Fonts.Bold(15.5f), DetailFont = Fonts.Regular(10.5f);
         readonly Wipe wipe;
         string title = "", detail = "";
@@ -530,8 +530,8 @@ namespace RaiTilePackageManager
     }
 
     /// <summary>
-    /// Square buttons of the world: primary filled with the Rai action blue, secondary outlined. The width is fixed by the
-    /// longest label the button can show, so changing its text never moves the row.
+    /// Square buttons: primary filled in action blue, secondary outlined. The width fits the longest label the button can
+    /// show, so a text change never moves the row.
     /// </summary>
     sealed class RaiButton : Button
     {
@@ -641,8 +641,8 @@ namespace RaiTilePackageManager
     }
 
     /// <summary>
-    /// A text box with a placeholder shown while it is empty: the native cue banner when editable; a read-only edit control
-    /// draws none, so for those the placeholder is painted over the empty box after each WM_PAINT.
+    /// A text box with a placeholder while empty: the native cue banner when editable. Read-only boxes draw none, so for
+    /// them the placeholder is painted after each WM_PAINT.
     /// </summary>
     sealed class InputBox : TextBox
     {
@@ -713,10 +713,7 @@ namespace RaiTilePackageManager
         }
     }
 
-    /// <summary>
-    /// The Rai logo as published on rai.it (inline SVG, 100×100: the square with the letters cut out), drawn as a vector
-    /// so it stays sharp at any scale. On the blue band it is used reversed, in white.
-    /// </summary>
+    /// <summary>The Rai logo from rai.it (inline SVG, 100×100, letters cut out of the square), drawn as a vector so it stays sharp.</summary>
     static class RaiLogo
     {
         const string Data =
@@ -868,9 +865,9 @@ namespace RaiTilePackageManager
     }
 
     /// <summary>
-    /// A window whose Windows title bar is replaced by the blue header band: the Rai logo, a title, an optional subtitle
-    /// and the window buttons. Only the title bar goes: the side and bottom frame stay, so resizing, snapping, the shadow
-    /// and the maximize animation remain the native ones. The band's empty areas drag the window.
+    /// A window with the blue header band in place of the Windows title bar: logo, title, optional subtitle, window
+    /// buttons. Only the title bar goes, so resizing, snapping, the shadow and the maximize animation stay native.
+    /// The band's empty areas drag the window.
     /// </summary>
     class BandForm : Form
     {
@@ -963,8 +960,8 @@ namespace RaiTilePackageManager
     }
 
     /// <summary>
-    /// The URL for GEOlayers as one large button: a real tile of the project as preview, the address with its {z}/{x}/{y}
-    /// placeholders picked out in the action blue, and a copy mark. A click (or Enter, or Space) copies it.
+    /// The GEOlayers URL as one large button: a project tile as preview, the address with {z}/{x}/{y} in action blue and
+    /// a copy mark. Click, Enter or Space copies it.
     /// </summary>
     sealed class UrlButton : Control
     {
@@ -1020,7 +1017,7 @@ namespace RaiTilePackageManager
         {
             if (url.Length == 0) return;
             try { Clipboard.SetDataObject(url, true, 5, 100); }
-            catch (ExternalException) { return; } // clipboard held by another program: nothing copied, nothing claimed
+            catch (ExternalException) { return; } // clipboard held by another program: no copy, no feedback
             copied = true;
             reset.Stop();
             reset.Start();
@@ -1117,9 +1114,8 @@ namespace RaiTilePackageManager
     }
 
     /// <summary>
-    /// The GEOlayers Raster Source fields after the URI, laid out like the GEOlayers panel: names in slate, values in the
-    /// action blue. A click (or Enter) on a value copies it for the field with the same name. It sits right under the URL
-    /// button and shares its border, so the two read as one card.
+    /// The Raster Source fields after the URI, in GEOlayers' order: names in slate, values in action blue, a click or
+    /// Enter copies a value. It shares the URL button's border, so the two read as one card.
     /// </summary>
     sealed class GeoFields : TableLayoutPanel
     {
@@ -1212,7 +1208,7 @@ namespace RaiTilePackageManager
             }
             catch (ExternalException)
             {
-                return; // clipboard held by another program: nothing copied, nothing claimed
+                return; // clipboard held by another program: no copy, no feedback
             }
             ShowNote($"Copiato {text} ({field}).", Theme.Ok);
             reset.Stop();

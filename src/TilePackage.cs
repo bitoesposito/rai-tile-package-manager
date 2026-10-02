@@ -28,10 +28,7 @@ namespace RaiTilePackageManager
         public int Written, Skipped;
     }
 
-    /// <summary>
-    /// ArcGIS Pro tile package (.tpkx or .tpk): a zip of Compact Cache V2 bundles plus metadata
-    /// (root.json in a .tpkx, conf.xml in a .tpk), converted into an XYZ folder {z}/{x}/{y}.{ext}.
-    /// </summary>
+    /// <summary>ArcGIS Pro tile package (.tpkx or .tpk): Compact Cache V2 bundles plus root.json or conf.xml, extracted to {z}/{x}/{y}.{ext}.</summary>
     public sealed class TilePackage
     {
         public string FilePath { get; private set; }
@@ -41,14 +38,14 @@ namespace RaiTilePackageManager
         public List<Bundle> Bundles { get; } = new List<Bundle>();
         public int[] Levels { get; private set; }
         public long TotalBytes => Bundles.Sum(b => b.Length);
-        /// <summary>The extent set in ArcGIS Pro, in degrees: west, south, east, north. Null when the package declares none.</summary>
+        /// <summary>The ArcGIS Pro extent in degrees (west, south, east, north), or null when the package has none.</summary>
         public double[] Bounds { get; private set; }
-        /// <summary>Reasons the tiles would not line up as XYZ Web Mercator tiles: conversion is blocked.</summary>
+        /// <summary>Why the tiles would not line up in GEOlayers; any of these blocks the conversion.</summary>
         public List<string> Problems { get; } = new List<string>();
         public List<string> Warnings { get; } = new List<string>();
 
-        // Compact Cache V2: 128×128 tiles per bundle; a 64-byte header, then a row-major index of
-        // 8-byte records (low 40 bits = offset of the tile data, high 24 bits = its size, 0 = no tile).
+        // Compact Cache V2: 128×128 tiles per bundle, a 64-byte header, then a row-major index of 8-byte records
+        // (low 40 bits the offset, high 24 bits the size, 0 = no tile).
         const int Side = 128;
         const int IndexEnd = 64 + Side * Side * 8;
         static readonly Regex BundleName = new Regex(@"(?:^|/)L(\d+)/R([0-9a-f]+)C([0-9a-f]+)\.bundle$", RegexOptions.IgnoreCase);
@@ -111,14 +108,15 @@ namespace RaiTilePackageManager
 
         void ReadRootJson(Stream s)
         {
-            var json = new MemoryStream();
-            s.CopyTo(json);
-            var root = (RootJson)new DataContractJsonSerializer(typeof(RootJson)).ReadObject(new MemoryStream(json.ToArray()));
+            var copy = new MemoryStream();
+            s.CopyTo(copy);
+            var json = copy.ToArray();
+            var root = (RootJson)new DataContractJsonSerializer(typeof(RootJson)).ReadObject(new MemoryStream(json));
             if (!string.IsNullOrEmpty(root.name)) Name = root.name;
             try
             {
-                // Read on its own: an odd extent must not stop the conversion, it only leaves the bounds unknown.
-                var extents = (ExtentsJson)new DataContractJsonSerializer(typeof(ExtentsJson)).ReadObject(new MemoryStream(json.ToArray()));
+                // Parsed apart: a bad extent leaves the bounds unknown and the conversion goes on.
+                var extents = (ExtentsJson)new DataContractJsonSerializer(typeof(ExtentsJson)).ReadObject(new MemoryStream(json));
                 var e = extents.fullExtent ?? extents.initialExtent;
                 if (e?.xmin != null && e.ymin != null && e.xmax != null && e.ymax != null)
                     Bounds = Degrees(e.xmin.Value, e.ymin.Value, e.xmax.Value, e.ymax.Value, Wkid(e.spatialReference) ?? Wkid(root.tileInfo?.spatialReference));
@@ -162,8 +160,8 @@ namespace RaiTilePackageManager
         }
 
         /// <summary>
-        /// An extent as west, south, east, north in degrees, the order GEOlayers uses. Web Mercator metres are converted;
-        /// WGS 84 (4326) is already in degrees; anything else, or an empty extent, gives null.
+        /// West, south, east, north in degrees, GEOlayers' order. Converts Web Mercator metres and passes WGS 84 through;
+        /// null for any other system or an empty extent.
         /// </summary>
         static double[] Degrees(double xmin, double ymin, double xmax, double ymax, int? wkid)
         {
@@ -234,8 +232,7 @@ namespace RaiTilePackageManager
                     ulong rec = BitConverter.ToUInt64(head, 64 + i * 8);
                     if (rec >> 40 != 0) tiles.Add(((long)(rec & 0xFFFFFFFFFF), (int)(rec >> 40), i));
                 }
-                // Zip entry streams are forward-only: read the tiles in file order, one at a time,
-                // so memory stays flat whatever the bundle size.
+                // Zip streams are forward-only: read the tiles in file order, one at a time, so memory stays flat.
                 tiles.Sort((x, y) => x.Offset.CompareTo(y.Offset));
 
                 long pos = IndexEnd;
@@ -289,7 +286,7 @@ namespace RaiTilePackageManager
                 if ((r = s.Read(scratch, 0, (int)Math.Min(count, scratch.Length))) == 0) throw new EndOfStreamException("Bundle troncato.");
         }
 
-        // root.json fields we need (the file also lists layers, legends...); filled by the serializer.
+        // The root.json fields the app reads, filled by the serializer.
 #pragma warning disable CS0649
         [DataContract] sealed class RootJson
         {
@@ -318,10 +315,7 @@ namespace RaiTilePackageManager
 #pragma warning restore CS0649
     }
 
-    /// <summary>
-    /// Pixel geometry of the XYZ grid: at zoom z the world is 256 × 2^z pixels square, x growing east from 180° W and y
-    /// growing south from 85.05° N. The map preview draws and measures with it.
-    /// </summary>
+    /// <summary>XYZ pixel geometry: at zoom z the world is 256 × 2^z pixels square, x east from 180° W, y south from 85.05° N.</summary>
     public static class WebMercator
     {
         public const int TileSize = 256;
@@ -348,10 +342,7 @@ namespace RaiTilePackageManager
             return min;
         }
 
-        /// <summary>
-        /// How many times a comp of compWidth × compHeight pixels must be halved to fit in width × height: the frame that
-        /// fits shows what the comp takes in at that many zoom levels deeper than the view.
-        /// </summary>
+        /// <summary>How many halvings a compWidth × compHeight comp needs to fit in width × height; each is one zoom level deeper.</summary>
         public static int FrameSteps(int compWidth, int compHeight, int width, int height)
         {
             int steps = 0;

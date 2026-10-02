@@ -14,9 +14,8 @@ namespace RaiTilePackageManager
     public enum Status { Info, Ok, Warning, Error }
 
     /// <summary>
-    /// Static file server for a project folder, reachable from this PC only (127.0.0.1 and ::1).
-    /// Plain sockets instead of HttpListener: no URL ACL or admin rights, no firewall prompt,
-    /// and "localhost" and "127.0.0.1" both work.
+    /// Static file server for a project folder on 127.0.0.1 and ::1 only, so localhost and 127.0.0.1 both work.
+    /// Plain sockets: HttpListener would need a URL ACL or admin rights and would trigger the firewall prompt.
     /// </summary>
     public sealed class TileServer : IDisposable
     {

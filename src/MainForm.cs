@@ -12,22 +12,6 @@ using System.Windows.Forms;
 
 namespace RaiTilePackageManager
 {
-    /*
-     * Direction contract (impeccable)
-     * THESIS: the app speaks the TG's on-air language: every state is a sottopancia and the running server is IN ONDA.
-     *   It refuses the stacked grey form and the generic dashed-dropzone dashboard.
-     * OWN-WORLD: Rai News blue #000099 bands with white Inter Tight, a full-height tab carrying the state as a drawn glyph,
-     *   live red #C22C2F only for on air and errors, rai.it blue #0060E6 for actions and focus, a light #F5F7FF desk
-     *   under dark on-air elements, square corners everywhere.
-     * STORY: the operator drops the package on the program monitor, reads in one strap whether it lines up, converts it
-     *   into a dedicated project folder, puts it on air and copies the URL into GEOlayers.
-     * FIRST VIEWPORT: blue header band with the Rai logo, the name, three tabs and the window buttons; a navy program monitor
-     *   of tiles fills the top of Importa with its lower third "Trascina qui il tile package"; destination choice below;
-     *   the primary action in a bar that never scrolls away.
-     * FORM: TG sottopancia, candidate 5 of 7 grounded directions; seed 224c4e9a.
-     * FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
-     */
-
     /// <summary>The main window: Importa (package to project), In onda (local server), Storage remoto (web server check).</summary>
     sealed class MainForm : BandForm
     {
@@ -639,7 +623,7 @@ namespace RaiTilePackageManager
             }
         }
 
-        /// <summary>Opens the map preview of the project, in a window of its own; a second click opens it afresh.</summary>
+        /// <summary>Opens the map preview in its own window; clicking again reopens it with fresh data.</summary>
         void ShowPreview()
         {
             if (preview != null && !preview.IsDisposed) preview.Close();

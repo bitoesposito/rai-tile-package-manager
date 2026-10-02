@@ -51,7 +51,7 @@ namespace RaiTilePackageManager
                 map.Focus();
                 try
                 {
-                    // Read afresh: packages added since the main window looked at the project are in.
+                    // Read afresh, so packages added since the main window opened the project show up.
                     var (project, sample) = await Task.Run(() =>
                     {
                         var p = TileFolder.Open(dir);
@@ -74,9 +74,9 @@ namespace RaiTilePackageManager
     }
 
     /// <summary>
-    /// The project's tiles at their real size, panned with the mouse and zoomed a level at a time. Missing tiles are
-    /// hatched. A frame in the middle shows what a Full HD comp takes in when GEOlayers shows the tiles at their real
-    /// size, with the zoom it needs: the frame is halved, one zoom level deeper each time, until it fits the window.
+    /// The project's tiles at their real size, panned with the mouse and zoomed one level at a time; missing tiles are
+    /// hatched. The frame in the middle is what a Full HD comp takes in at the zoom on its label, halved one level at a
+    /// time until it fits the window.
     /// </summary>
     sealed class MapView : Control
     {
@@ -117,7 +117,6 @@ namespace RaiTilePackageManager
         /// <summary><paramref name="fallback"/>: a tile to centre on when the project has no bounds recorded.</summary>
         public void ShowProject(ProjectInfo project, (int Z, int X, int Y, string File)? fallback)
         {
-            ClearCache();
             dir = project.Dir;
             extension = project.Format ?? "png";
             levels = project.Levels ?? new int[0];
