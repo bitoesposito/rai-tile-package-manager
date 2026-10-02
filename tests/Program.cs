@@ -107,7 +107,7 @@ static class Tests
 
         Check(TileFolder.Incompatibility(TileFolder.Open(Path.Combine(tmp, "legacy")), detail) != null, "png in un progetto jpg: bloccato");
 
-        // A package recorded without an extent (version 1.0.0) leaves the bounds unknown until it is imported again.
+        // A package recorded without an extent (old script or earlier build) leaves the bounds unknown until it is imported again.
         var old = Path.Combine(tmp, "senza-extent");
         var noExtent = TilePackage.Open(Package(tmp, "z.tpkx", "PNG", 3857, T(1, 0, 0, "Z")));
         Extract(noExtent, old, false);

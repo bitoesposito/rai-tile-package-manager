@@ -59,7 +59,7 @@ In GEOlayers 3 crea una Raster Source di tipo xyz. La scheda In onda mostra i va
 - Tile Size: 256 px, la dimensione delle tile del progetto. Con 512 px GEOlayers le mostra ingrandite al doppio e meno nitide.
 - Bounds: l'extent impostata in ArcGIS Pro, convertita da Web Mercator in gradi, nell'ordine ovest, sud, est, nord. Se il progetto contiene più pacchetti, i bounds li comprendono tutti.
 
-L'app registra i bounds quando un pacchetto entra nel progetto. Per i progetti creati con il vecchio script o con la versione 1.0.0, aggiungi di nuovo i pacchetti dalla scheda Importa: le tile già presenti restano come sono e l'app calcola i bounds.
+L'app registra i bounds quando un pacchetto entra nel progetto. Se mancano, per esempio in un progetto creato con il vecchio script, aggiungi di nuovo i pacchetti dalla scheda Importa: le tile già presenti restano come sono e l'app calcola i bounds.
 
 ## Aggiungere tile a un progetto esistente
 

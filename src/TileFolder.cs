@@ -160,7 +160,7 @@ namespace RaiTilePackageManager
 
         /// <summary>
         /// The union of the packages' extents; a re-import of the same file replaces its older entry. Null as soon as one
-        /// package has no extent recorded (imported by version 1.0.0 or by the old script): with partial bounds GEOlayers
+        /// package has no extent recorded (imported by the old script or by an earlier build): with partial bounds GEOlayers
         /// would skip that package's tiles.
         /// </summary>
         static double[] Union(List<SourceInfo> sources)
