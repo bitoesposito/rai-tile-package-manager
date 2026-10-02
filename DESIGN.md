@@ -268,11 +268,14 @@ A 92 px white panel with a 1 px Rule border: a real tile of the project as a squ
 ### GEOlayers Fields
 The Raster Source values after the URI, attached under the URL button so the two read as one card (it draws no top edge). Names in Slate, values as Action Blue links in Inter Tight SemiBold 10.5pt, in GEOlayers' order: Min Zoom and Max Zoom, Tile Size, then the four Bounds in degrees (west, south, east, north). A click or Enter copies the bare number; the note line turns green with what was copied for 2.5 s. Unknown bounds read "non disponibili" with the fix in the note.
 
+### Map Preview (signature)
+A window of its own with the same header band (title, then the project name in Regular 10.5pt pale band blue). The project's tiles at their real size, one tile pixel per screen pixel, on Gallery Navy; where the project has no tile at that zoom, a Monitor Grid diagonal hatch, explained by a legend chip at the bottom-left only while some is on screen. In the middle, the comp frame: a 2 px white line over a 4 px navy shade, halved one zoom level at a time until it fits; above it a Rai News Blue chip in white SemiBold 9.75pt with the zoom a Full HD comp needs, the one for 4K and the width. A zoom the project lacks reads "(manca)" and turns the frame orange. Drag pans, the wheel, + and − or a double click change the zoom one level at a time; a footer line in Slate gives the zoom and, under the pointer, the coordinates and the tile.
+
 ### Progress Line
 A 4 px Rule track filled with Action Blue.
 
 ### Header Band
-56 px Rai News Blue: the Rai square mark at 30 px reversed in white, 24 px from the left, the app name 12 px after it, the tabs, then native-style window buttons (46 x 56) drawn on the band. The empty band drags the window.
+56 px Rai News Blue: the Rai square mark at 30 px reversed in white, 24 px from the left, the window's title 12 px after it (a second window adds its subject in pale band blue), the tabs, then native-style window buttons (46 x 56) drawn on the band. The empty band drags the window.
 
 ## Do's and Don'ts
 

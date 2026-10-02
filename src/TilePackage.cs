@@ -57,7 +57,6 @@ namespace RaiTilePackageManager
         static readonly int[] WebMercatorWkids = { 3857, 102100, 102113, 900913 };
         const double OriginShift = 20037508.342787;
         const double Level0Resolution = 156543.03392804097; // metres per pixel at zoom 0, 256 px tiles
-        const double EarthRadius = 6378137;
         const string Reexport = "In ArcGIS Pro riesporta il pacchetto con lo schema di tassellatura \"ArcGIS Online / Bing Maps / Google Maps\".";
 
         public static TilePackage Open(string path)
@@ -172,8 +171,8 @@ namespace RaiTilePackageManager
             double Clamp(double v, double limit) => Math.Max(-limit, Math.Min(limit, v));
             if (wkid == 4326) return new[] { Clamp(xmin, 180), Clamp(ymin, 85.0511287798), Clamp(xmax, 180), Clamp(ymax, 85.0511287798) };
             if (wkid.HasValue && Array.IndexOf(WebMercatorWkids, wkid.Value) < 0) return null;
-            double Lon(double x) => Clamp(x, OriginShift) / EarthRadius * 180 / Math.PI;
-            double Lat(double y) => (2 * Math.Atan(Math.Exp(Clamp(y, OriginShift) / EarthRadius)) - Math.PI / 2) * 180 / Math.PI;
+            double Lon(double x) => Clamp(x, OriginShift) / WebMercator.EarthRadius * 180 / Math.PI;
+            double Lat(double y) => (2 * Math.Atan(Math.Exp(Clamp(y, OriginShift) / WebMercator.EarthRadius)) - Math.PI / 2) * 180 / Math.PI;
             return new[] { Lon(xmin), Lat(ymin), Lon(xmax), Lat(ymax) };
         }
 
@@ -317,5 +316,47 @@ namespace RaiTilePackageManager
             [DataMember] public SpatialReferenceJson spatialReference;
         }
 #pragma warning restore CS0649
+    }
+
+    /// <summary>
+    /// Pixel geometry of the XYZ grid: at zoom z the world is 256 × 2^z pixels square, x growing east from 180° W and y
+    /// growing south from 85.05° N. The map preview draws and measures with it.
+    /// </summary>
+    public static class WebMercator
+    {
+        public const int TileSize = 256;
+        public const double EarthRadius = 6378137;
+
+        public static double WorldSize(int z) => TileSize * Math.Pow(2, z);
+        public static double X(double lon, int z) => (lon + 180) / 360 * WorldSize(z);
+        public static double Y(double lat, int z)
+        {
+            double phi = lat * Math.PI / 180;
+            return (1 - Math.Log(Math.Tan(phi) + 1 / Math.Cos(phi)) / Math.PI) / 2 * WorldSize(z);
+        }
+        public static double Lon(double x, int z) => x / WorldSize(z) * 360 - 180;
+        public static double Lat(double y, int z) => Math.Atan(Math.Sinh(Math.PI * (1 - 2 * y / WorldSize(z)))) * 180 / Math.PI;
+
+        /// <summary>The ground width of one pixel at zoom <paramref name="z"/> and latitude <paramref name="lat"/>, in metres.</summary>
+        public static double MetresPerPixel(double lat, int z) => 2 * Math.PI * EarthRadius * Math.Cos(lat * Math.PI / 180) / WorldSize(z);
+
+        /// <summary>The deepest zoom in [min, max] at which <paramref name="bounds"/> (west, south, east, north) fit in width × height pixels.</summary>
+        public static int FitZoom(double[] bounds, int width, int height, int min, int max)
+        {
+            for (int z = max; z > min; z--)
+                if (X(bounds[2], z) - X(bounds[0], z) <= width && Y(bounds[1], z) - Y(bounds[3], z) <= height) return z;
+            return min;
+        }
+
+        /// <summary>
+        /// How many times a comp of compWidth × compHeight pixels must be halved to fit in width × height: the frame that
+        /// fits shows what the comp takes in at that many zoom levels deeper than the view.
+        /// </summary>
+        public static int FrameSteps(int compWidth, int compHeight, int width, int height)
+        {
+            int steps = 0;
+            while (steps < 16 && ((compWidth >> steps) > width || (compHeight >> steps) > height)) steps++;
+            return steps;
+        }
     }
 }

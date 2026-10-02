@@ -25,6 +25,7 @@ static class Tests
             Merge(tmp);
             Rejections(tmp);
             Server(tmp);
+            Geometry();
         }
         finally
         {
@@ -244,6 +245,22 @@ static class Tests
     static void Add(ZipArchive zip, string name, byte[] bytes)
     {
         using (var s = zip.CreateEntry(name, CompressionLevel.NoCompression).Open()) s.Write(bytes, 0, bytes.Length);
+    }
+
+    static void Geometry()
+    {
+        // The map preview's pixel maths: Rome there and back, Italy fitted in a window, the Full HD frame halved to fit.
+        double lon = 12.49637, lat = 41.90235;
+        Check(Math.Abs(WebMercator.Lon(WebMercator.X(lon, 12), 12) - lon) < 1e-9 && Math.Abs(WebMercator.Lat(WebMercator.Y(lat, 12), 12) - lat) < 1e-9,
+            "pixel e gradi, andata e ritorno");
+        Check(WebMercator.X(0, 0) == 128 && Math.Abs(WebMercator.Y(0, 0) - 128) < 1e-9 && Math.Abs(WebMercator.MetresPerPixel(0, 0) - 156543.03392804097) < 1e-6,
+            "zoom 0: centro del mondo e metri per pixel");
+        var italy = new[] { 6.6, 36.6, 18.5, 47.1 };
+        Check(WebMercator.FitZoom(italy, 1100, 700, 0, 16) == 6 && WebMercator.FitZoom(italy, 990, 630, 0, 16) == 5, "l'Italia entra nella finestra");
+        Check(WebMercator.FitZoom(italy, 100000, 100000, 0, 8) == 8 && WebMercator.FitZoom(italy, 10, 10, 3, 8) == 3, "zoom dentro quelli del progetto");
+        Check(WebMercator.FrameSteps(1920, 1080, 2000, 1200) == 0 && WebMercator.FrameSteps(1920, 1080, 1068, 574) == 1 &&
+              WebMercator.FrameSteps(1920, 1080, 400, 300) == 3, "riquadro Full HD dimezzato finché entra");
+        Check(WebMercator.FrameSteps(1920, 1080, 0, -5) <= 16, "finestra senza area: il riquadro non cicla");
     }
 
     // --- helpers ------------------------------------------------------------------------------------

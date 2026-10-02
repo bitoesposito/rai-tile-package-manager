@@ -46,6 +46,14 @@ Il server risponde solo a questo PC (127.0.0.1 e ::1), quindi non servono permes
 
 Anche una cartella di rete (`\\server\condivisione\...`) si usa da qui: sceglila come progetto e l'app la serve con il server locale.
 
+### Anteprima mappa
+
+![L'anteprima della mappa con il riquadro della comp Full HD](docs/anteprima.png)
+
+Nella scheda In onda, "Anteprima mappa" apre il progetto in una finestra a parte. Le tile arrivano direttamente dalla cartella, quindi il server può anche essere fermo. Trascina per spostarti e cambia zoom con la rotella, con i tasti + e − o con un doppio clic; "Adatta all'area" torna all'extent del progetto. Dove il progetto non ha tile a quello zoom, la mappa è tratteggiata.
+
+Il riquadro al centro è l'area che entra in una comp Full HD quando GEOlayers mostra le tile a dimensione reale. L'etichetta sopra indica lo zoom che serve, quello per una comp 4K e la larghezza dell'area. Uno zoom che il progetto non ha è segnato con "manca", e se manca quello per il Full HD anche il riquadro diventa arancione: esporta un pacchetto con zoom più dettagliati e aggiungilo al progetto.
+
 ### Storage remoto
 
 Quando le tile del progetto saranno pubblicate su un web server, inserisci l'indirizzo della cartella del progetto, per esempio `https://tiles.azienda.it/mappa`, e premi "Verifica connessione". L'app scarica una tile del progetto scelto nella scheda In onda e la confronta con quella su disco. Se il server risponde, compare il riquadro con l'URL da copiare per GEOlayers e l'app ricorda l'indirizzo nel progetto.
@@ -136,6 +144,7 @@ dotnet run --project tests
 | `src/TileServer.cs` | Server locale e verifica dello storage remoto |
 | `src/Ui.cs` | Design system: colori, font, sottopancia, monitor, schede, pulsanti, logo, barra del titolo, riquadro dell'URL |
 | `src/MainForm.cs` | La finestra con le tre schede |
+| `src/MapPreview.cs` | Anteprima della mappa: tile del progetto, tratteggio dove mancano, riquadro della comp |
 | `src/FolderPicker.cs` | Selettore di cartelle di Esplora file |
 | `src/icon.svg` | L'icona dell'app; `src/app.ico` ne contiene le versioni da 16 a 256 px |
 

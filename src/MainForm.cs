@@ -6,7 +6,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -30,17 +29,15 @@ namespace RaiTilePackageManager
      */
 
     /// <summary>The main window: Importa (package to project), In onda (local server), Storage remoto (web server check).</summary>
-    sealed class MainForm : Form
+    sealed class MainForm : BandForm
     {
         const string GuideUrl = "https://github.com/bitoesposito/rai-tile-package-manager#readme";
         const string NotAProject = "Scegli la cartella creata da questa app: contiene metadata.json e una cartella per ogni zoom.";
         static readonly string SettingsFile = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Rai - Package tile manager", "settings.txt");
-        static readonly Font HeaderFont = Fonts.Bold(12.5f);
 
         readonly TabButton[] tabs = { new TabButton("Importa"), new TabButton("In onda"), new TabButton("Storage remoto") };
         readonly Panel[] pages;
-        readonly CaptionPanel header = new CaptionPanel { Dock = DockStyle.Top, Height = 56, BackColor = Theme.Band };
         readonly System.Windows.Forms.Timer ticker = new System.Windows.Forms.Timer { Interval = 150 };
 
         // Importa
@@ -69,6 +66,7 @@ namespace RaiTilePackageManager
         // In onda
         readonly TextBox liveBox = Ui.Field("Progetto da mettere in onda", "Nessun progetto scelto");
         readonly RaiButton liveButton = new RaiButton("Cambia…", false);
+        readonly RaiButton previewButton = new RaiButton("Anteprima mappa", false);
         readonly Label liveHint = Ui.Hint("Scegli la cartella di un progetto. Dopo una conversione l'app propone quella appena creata.");
         readonly Strap liveStrap = new Strap();
         readonly NumericUpDown portBox = new NumericUpDown { Minimum = 1024, Maximum = 65535, Value = 8000, Width = 76, AccessibleName = "Porta" };
@@ -101,17 +99,12 @@ namespace RaiTilePackageManager
         long progressTotal;
         TileServer server;
         bool verifying, remoteVerified;
+        MapPreview preview;
 
-        public MainForm(string[] startPaths)
+        public MainForm(string[] startPaths) : base("Package tile manager") // the logo says "Rai"
         {
             SuspendLayout();
-            AutoScaleDimensions = new SizeF(96F, 96F);
-            AutoScaleMode = AutoScaleMode.Dpi;
-            Font = SystemFonts.MessageBoxFont;
-            BackColor = Theme.Desk;
-            ForeColor = Theme.Ink;
             Text = "Rai - Package tile manager";
-            using (var icon = typeof(MainForm).Assembly.GetManifestResourceStream("app.ico")) Icon = new Icon(icon);
             ClientSize = new Size(800, 700);
             StartPosition = FormStartPosition.CenterScreen;
 
@@ -136,7 +129,7 @@ namespace RaiTilePackageManager
                     destinationStrap, policy),
                 Ui.Page(null,
                     Ui.Heading("Progetto"),
-                    Ui.Line(0, liveBox, liveButton),
+                    Ui.Line(0, liveBox, liveButton, previewButton),
                     liveHint, liveStrap,
                     Ui.Heading("Server locale"),
                     portRow, tally,
@@ -152,15 +145,9 @@ namespace RaiTilePackageManager
                     Ui.Hint("La verifica scarica una tile del progetto scelto nella scheda In onda e la confronta con quella su disco.")),
             };
 
-            // Header band: the window has no Windows title bar; its empty areas drag the window, the buttons sit in the band.
-            header.Paint += PaintHeader;
-            var captionStrip = new FlowLayoutPanel { Dock = DockStyle.Right, AutoSize = true, WrapContents = false, BackColor = Theme.Band, Margin = Padding.Empty };
-            captionStrip.Controls.AddRange(new Control[] { new CaptionButton(CaptionAction.Minimize), new CaptionButton(CaptionAction.Maximize), new CaptionButton(CaptionAction.Close) });
             var tabStrip = new FlowLayoutPanel { Dock = DockStyle.Right, AutoSize = true, WrapContents = false, BackColor = Theme.Band, Padding = new Padding(0, 0, 18, 0) };
             tabStrip.Controls.AddRange(tabs);
-            header.Controls.Add(tabStrip);
-            header.Controls.Add(captionStrip); // docked first: the window buttons take the far right
-            Resize += (s, e) => captionStrip.Controls[1].Invalidate(); // maximize and restore glyphs
+            AddToHeader(tabStrip);
 
             var guide = new LinkLabel { Text = "Guida e aggiornamenti", AutoSize = true, LinkColor = Theme.Action, ActiveLinkColor = Theme.ActionPressed, LinkBehavior = LinkBehavior.HoverUnderline };
             var version = new Label { Text = "Versione " + typeof(MainForm).Assembly.GetName().Version.ToString(3), AutoSize = true, ForeColor = Theme.Muted };
@@ -174,7 +161,7 @@ namespace RaiTilePackageManager
             body.Controls.AddRange(pages);
             Controls.Add(body); // docking runs from the last control added: header, then footer, then the body fills the rest
             Controls.Add(footer);
-            Controls.Add(header);
+            Controls.Add(Header);
 
             var tips = new ToolTip { AutoPopDelay = 20000 };
             tips.SetToolTip(keepChoice, "Le tile già presenti restano come sono. Un pacchetto di un'area piccola contiene anche gli zoom bassi, quasi vuoti:\n" +
@@ -195,6 +182,7 @@ namespace RaiTilePackageManager
             convertButton.Click += (s, e) => Convert();
             openButton.Click += (s, e) => Process.Start("explorer.exe", "\"" + convertedDir + "\"");
             liveButton.Click += (s, e) => ChooseLiveProject();
+            previewButton.Click += (s, e) => ShowPreview();
             serverButton.Click += (s, e) => ToggleServer();
             portBox.ValueChanged += (s, e) => UpdateState();
             verifyButton.Click += (s, e) => VerifyRemote();
@@ -242,43 +230,6 @@ namespace RaiTilePackageManager
             };
         }
 
-        // --- window frame -----------------------------------------------------------------------------------------
-
-        /// <summary>
-        /// Removes only the Windows title bar: the side and bottom frame stay, so resizing, snapping, the shadow and the
-        /// maximize animation remain the native ones. The header band takes the title bar's place.
-        /// </summary>
-        protected override void WndProc(ref Message m)
-        {
-            const int WM_NCCALCSIZE = 0x83, WM_NCHITTEST = 0x84, HTCLIENT = 1, HTCAPTION = 2, HTTOP = 12;
-            if (m.Msg == WM_NCCALCSIZE && m.WParam != IntPtr.Zero)
-            {
-                var before = (NcCalcSizeParams)Marshal.PtrToStructure(m.LParam, typeof(NcCalcSizeParams));
-                base.WndProc(ref m);
-                var after = (NcCalcSizeParams)Marshal.PtrToStructure(m.LParam, typeof(NcCalcSizeParams));
-                // A maximized window overhangs the screen by its frame: keep the band below the top edge.
-                after.Client.Top = before.Client.Top + (WindowState == FormWindowState.Maximized ? GetSystemMetrics(33) + GetSystemMetrics(92) : 0);
-                Marshal.StructureToPtr(after, m.LParam, false);
-                m.Result = IntPtr.Zero;
-                return;
-            }
-            base.WndProc(ref m);
-            if (m.Msg == WM_NCHITTEST && (int)m.Result == HTCLIENT)
-            {
-                long lp = m.LParam.ToInt64();
-                var point = PointToClient(new Point((short)(lp & 0xFFFF), (short)((lp >> 16) & 0xFFFF)));
-                if (WindowState == FormWindowState.Normal && point.Y < (int)(6 * DeviceDpi / 96f)) m.Result = (IntPtr)HTTOP;
-                else if (point.Y < header.Height) m.Result = (IntPtr)HTCAPTION;
-            }
-        }
-
-        protected override void OnHandleCreated(EventArgs e)
-        {
-            base.OnHandleCreated(e);
-            const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_FRAMECHANGED = 0x20;
-            SetWindowPos(Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
-        }
-
         /// <summary>The result strap takes the width and the row's height; the actions stack on its right, primary on top.</summary>
         Control ResultRow()
         {
@@ -288,16 +239,6 @@ namespace RaiTilePackageManager
             resultStrap.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
             resultStrap.Margin = new Padding(0, 3, 0, 3); // the buttons' own margin: band and buttons share top and bottom edges
             return row;
-        }
-
-        void PaintHeader(object sender, PaintEventArgs e)
-        {
-            float k = DeviceDpi / 96f;
-            int logo = (int)(30 * k), x = (int)(24 * k);
-            RaiLogo.Draw(e.Graphics, new Rectangle(x, (header.Height - logo) / 2, logo, logo), Theme.BandText);
-            TextRenderer.DrawText(e.Graphics, "Package tile manager", HeaderFont, // the logo says "Rai"
-                new Rectangle(x + logo + (int)(12 * k), 0, header.Width, header.Height), Theme.BandText,
-                TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix);
         }
 
         void SelectTab(int index)
@@ -394,7 +335,7 @@ namespace RaiTilePackageManager
             package = opened;
             var status = package.Problems.Count > 0 ? Status.Error : package.Warnings.Count > 0 ? Status.Warning : Status.Ok;
             monitor.Set(Sottopancia.GlyphOf(status), Theme.Of(status), package.Name,
-                $"{Path.GetFileName(path)} · {package.Format} · zoom {Zooms(package.Levels)} · {FileSize(package.TotalBytes)}\n" +
+                $"{Path.GetFileName(path)} · {package.Format} · zoom {Ui.Zooms(package.Levels)} · {FileSize(package.TotalBytes)}\n" +
                 (status == Status.Ok ? "Schema Web Mercator standard: in GEOlayers le tile si allineano alla mappa." : "Leggi qui sotto prima di convertire."));
             if (status == Status.Error)
                 packageStrap.Show(status, "Questo pacchetto non funziona in GEOlayers", string.Join("\n", package.Problems));
@@ -530,7 +471,7 @@ namespace RaiTilePackageManager
                 else destinationStrap.Clear();
                 return;
             }
-            var title = $"{Path.GetFileName(addProject.Dir)}: tile {(addProject.Format ?? "?").ToUpperInvariant()}, zoom {Zooms(addProject.Levels)}";
+            var title = $"{Path.GetFileName(addProject.Dir)}: tile {(addProject.Format ?? "?").ToUpperInvariant()}, zoom {Ui.Zooms(addProject.Levels)}";
             var incompatible = package == null ? null : TileFolder.Incompatibility(addProject, package);
             if (incompatible != null)
             {
@@ -540,13 +481,13 @@ namespace RaiTilePackageManager
             var lines = new List<string>();
             if (addNote != null) lines.Add(addNote);
             if (addProject.Sources.Count > 0)
-                lines.Add("Contiene " + string.Join(", ", addProject.Sources.Select(s => $"{s.File} (zoom {Zooms(s.Levels)})")) + ".");
+                lines.Add("Contiene " + string.Join(", ", addProject.Sources.Select(s => $"{s.File} (zoom {Ui.Zooms(s.Levels)})")) + ".");
             if (package != null)
             {
                 var added = package.Levels.Except(addProject.Levels).ToArray();
                 var common = package.Levels.Intersect(addProject.Levels).ToArray();
-                if (added.Length > 0) lines.Add($"Il pacchetto aggiunge gli zoom {Zooms(added)}.");
-                if (common.Length > 0) lines.Add($"Gli zoom {Zooms(common)} ci sono già: scegli qui sotto cosa fare delle tile in comune.");
+                if (added.Length > 0) lines.Add($"Il pacchetto aggiunge gli zoom {Ui.Zooms(added)}.");
+                if (common.Length > 0) lines.Add($"Gli zoom {Ui.Zooms(common)} ci sono già: scegli qui sotto cosa fare delle tile in comune.");
                 var previous = addProject.Sources.LastOrDefault(s => string.Equals(s.File, Path.GetFileName(package.FilePath), StringComparison.OrdinalIgnoreCase));
                 if (previous != null) lines.Add($"{previous.File} è già stato importato il {Date(previous.Date)}.");
             }
@@ -677,7 +618,7 @@ namespace RaiTilePackageManager
             remoteUrl.Preview = preview == null ? null : new Bitmap(preview);
             var sources = found.Sources.Count == 0 ? "senza storico dei pacchetti"
                 : found.Sources.Count == 1 ? "1 pacchetto importato" : $"{found.Sources.Count} pacchetti importati";
-            liveStrap.Show(Status.Ok, Path.GetFileName(found.Dir), $"Tile {(found.Format ?? "?").ToUpperInvariant()} · zoom {Zooms(found.Levels)} · {sources}");
+            liveStrap.Show(Status.Ok, Path.GetFileName(found.Dir), $"Tile {(found.Format ?? "?").ToUpperInvariant()} · zoom {Ui.Zooms(found.Levels)} · {sources}");
             if (remoteBox.Text.Trim().Length == 0 && found.RemoteUrl != null) remoteBox.Text = found.RemoteUrl;
             UpdateState();
         }
@@ -696,6 +637,14 @@ namespace RaiTilePackageManager
             {
                 return null; // not a readable image: the button shows the tile grid instead
             }
+        }
+
+        /// <summary>Opens the map preview of the project, in a window of its own; a second click opens it afresh.</summary>
+        void ShowPreview()
+        {
+            if (preview != null && !preview.IsDisposed) preview.Close();
+            preview = new MapPreview(liveProject.Dir);
+            preview.Show();
         }
 
         void ToggleServer()
@@ -787,6 +736,7 @@ namespace RaiTilePackageManager
                 control.Enabled = !busy;
 
             liveButton.Enabled = server == null;
+            previewButton.Enabled = liveProject != null;
             liveHint.Visible = liveProject == null;
             serverButton.Text = server != null ? "Ferma" : "Metti in onda";
             serverButton.Primary = server == null;
@@ -884,35 +834,10 @@ namespace RaiTilePackageManager
             foreach (Control child in control.Controls) EnableDrop(child);
         }
 
-        static string Zooms(int[] levels)
-        {
-            if (levels == null || levels.Length == 0) return "nessuno";
-            var parts = new List<string>();
-            for (int i = 0; i < levels.Length; i++)
-            {
-                int first = levels[i];
-                while (i + 1 < levels.Length && levels[i + 1] == levels[i] + 1) i++;
-                parts.Add(first == levels[i] ? first.ToString() : $"{first}-{levels[i]}");
-            }
-            return string.Join(", ", parts);
-        }
-
         static string FileSize(long bytes) =>
             bytes >= 1L << 30 ? $"{bytes / (double)(1L << 30):0.0} GB" : $"{bytes / (double)(1L << 20):0.0} MB";
 
         static string Date(string iso) =>
             DateTimeOffset.TryParse(iso, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ? date.ToString("g") : iso;
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct Rect { public int Left, Top, Right, Bottom; }
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct NcCalcSizeParams { public Rect Client, Before, Source; public IntPtr Position; }
-
-        [DllImport("user32.dll")]
-        static extern int GetSystemMetrics(int index);
-
-        [DllImport("user32.dll")]
-        static extern bool SetWindowPos(IntPtr window, IntPtr after, int x, int y, int width, int height, uint flags);
     }
 }

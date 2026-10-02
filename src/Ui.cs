@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
@@ -867,6 +868,101 @@ namespace RaiTilePackageManager
     }
 
     /// <summary>
+    /// A window whose Windows title bar is replaced by the blue header band: the Rai logo, a title, an optional subtitle
+    /// and the window buttons. Only the title bar goes: the side and bottom frame stay, so resizing, snapping, the shadow
+    /// and the maximize animation remain the native ones. The band's empty areas drag the window.
+    /// </summary>
+    class BandForm : Form
+    {
+        static readonly Font TitleFont = Fonts.Bold(12.5f), SubtitleFont = Fonts.Regular(10.5f);
+        /// <summary>The window adds it to its controls last, so the band docks first.</summary>
+        protected readonly CaptionPanel Header = new CaptionPanel { Dock = DockStyle.Top, Height = 56, BackColor = Theme.Band };
+        readonly FlowLayoutPanel captionStrip = new FlowLayoutPanel { Dock = DockStyle.Right, AutoSize = true, WrapContents = false, BackColor = Theme.Band, Margin = Padding.Empty };
+        readonly string title, subtitle;
+
+        protected BandForm(string title, string subtitle = null)
+        {
+            this.title = title;
+            this.subtitle = subtitle;
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            Font = SystemFonts.MessageBoxFont;
+            BackColor = Theme.Desk;
+            ForeColor = Theme.Ink;
+            using (var icon = typeof(BandForm).Assembly.GetManifestResourceStream("app.ico")) Icon = new Icon(icon);
+            captionStrip.Controls.AddRange(new Control[] { new CaptionButton(CaptionAction.Minimize), new CaptionButton(CaptionAction.Maximize), new CaptionButton(CaptionAction.Close) });
+            Header.Controls.Add(captionStrip);
+            Header.Paint += PaintHeader;
+            Resize += (s, e) => captionStrip.Controls[1].Invalidate(); // maximize and restore glyphs
+        }
+
+        /// <summary>Puts <paramref name="control"/> in the band, docked right, just left of the window buttons.</summary>
+        protected void AddToHeader(Control control)
+        {
+            Header.Controls.Add(control);
+            captionStrip.SendToBack(); // docked first: the window buttons keep the far right
+        }
+
+        void PaintHeader(object sender, PaintEventArgs e)
+        {
+            float k = DeviceDpi / 96f;
+            int logo = (int)(30 * k), x = (int)(24 * k);
+            RaiLogo.Draw(e.Graphics, new Rectangle(x, (Header.Height - logo) / 2, logo, logo), Theme.BandText);
+            x += logo + (int)(12 * k);
+            const TextFormatFlags flags = TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix;
+            TextRenderer.DrawText(e.Graphics, title, TitleFont, new Rectangle(x, 0, Header.Width, Header.Height), Theme.BandText, flags);
+            if (subtitle == null) return;
+            x += TextRenderer.MeasureText(e.Graphics, title, TitleFont, Size.Empty, flags).Width + (int)(4 * k);
+            int right = Header.Controls.Cast<Control>().Where(c => c.Visible).Select(c => c.Left).DefaultIfEmpty(Header.Width).Min() - (int)(12 * k);
+            TextRenderer.DrawText(e.Graphics, subtitle, SubtitleFont, new Rectangle(x, 0, Math.Max(0, right - x), Header.Height), Theme.BandSoft,
+                flags | TextFormatFlags.EndEllipsis);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_NCCALCSIZE = 0x83, WM_NCHITTEST = 0x84, HTCLIENT = 1, HTCAPTION = 2, HTTOP = 12;
+            if (m.Msg == WM_NCCALCSIZE && m.WParam != IntPtr.Zero)
+            {
+                var before = (NcCalcSizeParams)Marshal.PtrToStructure(m.LParam, typeof(NcCalcSizeParams));
+                base.WndProc(ref m);
+                var after = (NcCalcSizeParams)Marshal.PtrToStructure(m.LParam, typeof(NcCalcSizeParams));
+                // A maximized window overhangs the screen by its frame: keep the band below the top edge.
+                after.Client.Top = before.Client.Top + (WindowState == FormWindowState.Maximized ? GetSystemMetrics(33) + GetSystemMetrics(92) : 0);
+                Marshal.StructureToPtr(after, m.LParam, false);
+                m.Result = IntPtr.Zero;
+                return;
+            }
+            base.WndProc(ref m);
+            if (m.Msg == WM_NCHITTEST && (int)m.Result == HTCLIENT)
+            {
+                long lp = m.LParam.ToInt64();
+                var point = PointToClient(new Point((short)(lp & 0xFFFF), (short)((lp >> 16) & 0xFFFF)));
+                if (WindowState == FormWindowState.Normal && point.Y < (int)(6 * DeviceDpi / 96f)) m.Result = (IntPtr)HTTOP;
+                else if (point.Y < Header.Height) m.Result = (IntPtr)HTCAPTION;
+            }
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_FRAMECHANGED = 0x20;
+            SetWindowPos(Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct Rect { public int Left, Top, Right, Bottom; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct NcCalcSizeParams { public Rect Client, Before, Source; public IntPtr Position; }
+
+        [DllImport("user32.dll")]
+        static extern int GetSystemMetrics(int index);
+
+        [DllImport("user32.dll")]
+        static extern bool SetWindowPos(IntPtr window, IntPtr after, int x, int y, int width, int height, uint flags);
+    }
+
+    /// <summary>
     /// The URL for GEOlayers as one large button: a real tile of the project as preview, the address with its {z}/{x}/{y}
     /// placeholders picked out in the action blue, and a copy mark. A click (or Enter, or Space) copies it.
     /// </summary>
@@ -1175,6 +1271,20 @@ namespace RaiTilePackageManager
         {
             Text = text, AutoSize = true, ForeColor = Theme.Muted, Anchor = AnchorStyles.Left | AnchorStyles.Right, Margin = new Padding(0, 2, 0, 4),
         };
+
+        /// <summary>Zoom levels as ranges: "0-2, 5, 7-9".</summary>
+        public static string Zooms(int[] levels)
+        {
+            if (levels == null || levels.Length == 0) return "nessuno";
+            var parts = new List<string>();
+            for (int i = 0; i < levels.Length; i++)
+            {
+                int first = levels[i];
+                while (i + 1 < levels.Length && levels[i + 1] == levels[i] + 1) i++;
+                parts.Add(first == levels[i] ? first.ToString() : $"{first}-{levels[i]}");
+            }
+            return string.Join(", ", parts);
+        }
 
         public static RadioButton Choice(string text) => new RadioButton
         {
