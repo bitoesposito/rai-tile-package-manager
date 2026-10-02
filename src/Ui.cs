@@ -471,19 +471,26 @@ namespace RaiTilePackageManager
 
         float K => DeviceDpi / 96f;
         const TextFormatFlags LabelFlags = TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding;
-        int Pad => (int)(6 * K); // each side: labels sit 12 px apart
+        int Pad => (int)(8 * K); // each side; tabs touch, no gap
         int TallySize => (int)(10 * K);
         int TallyGap => (int)(7 * K);
 
-        public override Size GetPreferredSize(Size proposed) =>
-            new Size(TextRenderer.MeasureText(Text, TabFont, Size.Empty, LabelFlags).Width + 2 * Pad + (onAir ? TallySize + TallyGap : 0), (int)(56 * K));
+        // Measured on a device context: without one, .NET Framework ignores NoPadding and adds about 8 px on the right.
+        int ContentWidth(IDeviceContext dc) =>
+            TextRenderer.MeasureText(dc, Text, TabFont, Size.Empty, LabelFlags).Width + (onAir ? TallySize + TallyGap : 0);
+
+        public override Size GetPreferredSize(Size proposed)
+        {
+            using (var screen = Graphics.FromHwnd(IntPtr.Zero)) return new Size(ContentWidth(screen) + 2 * Pad, (int)(56 * K));
+        }
 
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics;
             float k = K;
             g.Clear(Theme.Band);
-            int x = Pad;
+            int content = ContentWidth(g);
+            int x = (Width - content) / 2; // dot and label centred in the tab's area
             if (onAir)
             {
                 int y = (Height - TallySize) / 2;
@@ -493,15 +500,15 @@ namespace RaiTilePackageManager
                 g.SmoothingMode = SmoothingMode.None;
                 x += TallySize + TallyGap;
             }
-            TextRenderer.DrawText(g, Text, TabFont, new Rectangle(x, 0, Width - x - Pad, Height), selected ? Theme.BandText : Theme.BandSoft,
+            TextRenderer.DrawText(g, Text, TabFont, new Rectangle(x, 0, Width - x, Height), selected ? Theme.BandText : Theme.BandSoft,
                 LabelFlags | TextFormatFlags.VerticalCenter);
             int bar = selected ? (int)(3 * k) : hover ? (int)Math.Max(1, k) : 0;
             if (bar > 0)
                 using (var b = new SolidBrush(selected ? Theme.BandText : Theme.BandSoft))
-                    g.FillRectangle(b, Pad, Height - bar, Width - 2 * Pad, bar);
+                    g.FillRectangle(b, 0, Height - bar, Width, bar); // the bar spans the whole tab
             if (Focused && ShowFocusCues)
                 using (var pen = new Pen(Theme.BandText, Math.Max(1, k)) { DashStyle = DashStyle.Dot })
-                    g.DrawRectangle(pen, (int)(3 * k), (int)(10 * k), Width - (int)(6 * k) - 1, Height - (int)(20 * k) - 1);
+                    g.DrawRectangle(pen, (int)(1 * k), (int)(10 * k), Width - (int)(2 * k) - 1, Height - (int)(20 * k) - 1);
         }
 
         protected override void OnClick(EventArgs e) { base.OnClick(e); Focus(); Chosen?.Invoke(this, EventArgs.Empty); }
