@@ -221,7 +221,7 @@ A deep broadcast blue world: two Rai blues with distinct jobs, three signal colo
 
 ## Layout
 
-A single 800 x 700 window (minimum 80% of the default width, at least 480 tall), header band 56 px, three tab pages, a 34 px footer with the version and the guide link. Each page is one vertical column with 28 px side gutters, 14 px top and 18 px bottom padding; it scrolls only when the window is too small. The primary action lives in an action bar docked at the bottom of the page above a 1 px rule (28/6/28/12 padding), so it never scrolls away.
+A single 800 x 700 window (minimum 80% of the default width, at least 480 tall), header band 56 px, three tab pages, a 34 px footer with the version and the guide link. Each page is one vertical column with 28 px side gutters, 14 px top and 18 px bottom padding; it scrolls only when the window is too small. The primary action lives in an action bar docked at the bottom of the page above a 1 px rule (28/6/28/12 padding), so it never scrolls away. There the result strap takes the spare width and the full height of the actions, which stack on its right at one fixed width, primary on top.
 
 Rows are tables where one control takes the spare width (a field) and the rest size to content (buttons). Text fields and buttons share one 32 px height so a row reads as one line. Straps take the full column width, 6 px above and below. A row that starts hidden keeps its place when it appears. All metrics scale with DPI (value x DeviceDpi / 96).
 
@@ -234,7 +234,7 @@ Flat. There are no shadows anywhere. Depth is tonal: the dark navy monitor and t
 
 ## Shapes
 
-Square corners everywhere (0 px), after the Rai 2016 identity's dominant square: buttons, fields, straps, the monitor, the URL button, the tally square, even the copy mark (two overlapping squares). Borders are 1 px rules at rest and 2 px when focused. Glyphs are drawn: one 2 px round-capped stroke (check, cross, exclamation, info, download), never a font glyph.
+Square corners everywhere (0 px), after the Rai 2016 identity's dominant square: buttons, fields, straps, the monitor, the URL button, even the copy mark (two overlapping squares). The one round shape is the on-air dot beside the In onda tab, like a recording light. Borders are 1 px rules at rest and 2 px when focused. Glyphs are drawn: one 2 px round-capped stroke (check, cross, exclamation, info, download), never a font glyph.
 
 ## Components
 
@@ -253,7 +253,7 @@ Square, sized by their longest possible label so changing text never moves the r
 - **Read-only:** path and URL fields stay out of the Tab order; the button beside them is the stop.
 
 ### Navigation
-Header tabs on the blue band, right-aligned before the window buttons: SemiBold 10.5pt, 56 px tall. Selected is white with a 3 px white bar at the bottom (12 px inset each side); hover shows a 1 px pale bar; focus a dotted white rectangle. While the server is on air the "In onda" tab carries a 9 px Live Red square with a 1 px white edge before its label, on every tab.
+Header tabs on the blue band, right-aligned before the window buttons: SemiBold 10.5pt, 56 px tall, 10 px side padding, so labels sit 20 px apart. Selected is white with a 3 px white bar under the label; hover shows a 1 px pale bar; focus a dotted white rectangle. While the server is on air the "In onda" tab carries a 10 px Live Red dot with a 1 px white edge before its label, on every tab.
 
 ### Status Strap (signature)
 The sottopancia: Rai News Blue band, a full-height tab on the left in the state colour (Action Blue info, green ok, orange warning, Live Red error) carrying a drawn white glyph, a Bold white title and an optional pale band-blue detail. It sizes its height to its text and wraps to the column. The tally variant replaces the glyph with a text tab: IN ONDA on Live Red, FUORI ONDA on Slate. Entrance: a wipe from the left, exponential ease-out over 240 ms starting a third visible; ticking detail counters do not replay it; skipped when Windows animations are off.

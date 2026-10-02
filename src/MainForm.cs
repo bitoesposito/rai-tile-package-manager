@@ -60,8 +60,10 @@ namespace RaiTilePackageManager
         readonly FlowLayoutPanel policy = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoSize = true, Margin = new Padding(18, 0, 0, 4) };
         readonly ProgressLine progressLine = new ProgressLine { Visible = false };
         readonly Strap resultStrap = new Strap();
-        readonly RaiButton openButton = new RaiButton("Apri cartella", false) { Visible = false };
-        readonly RaiButton convertButton = new RaiButton("Converti", true, "Aggiungi al progetto", "Metti in onda", "Annulla");
+        // Stacked at the right of the result, both as wide as the longest label either can show.
+        static readonly string[] ActionLabels = { "Converti", "Aggiungi al progetto", "Metti in onda", "Annulla", "Apri cartella" };
+        readonly RaiButton openButton = new RaiButton("Apri cartella", false, ActionLabels) { Visible = false };
+        readonly RaiButton convertButton = new RaiButton("Converti", true, ActionLabels);
         readonly Control newRow, addRow;
 
         // In onda
@@ -125,7 +127,7 @@ namespace RaiTilePackageManager
 
             pages = new[]
             {
-                Ui.Page(Ui.ActionBar(progressLine, Ui.Line(0, resultStrap, openButton, convertButton)),
+                Ui.Page(Ui.ActionBar(progressLine, ResultRow()),
                     monitor,
                     packageStrap,
                     Ui.Heading("Dove salvare le tile"),
@@ -275,6 +277,17 @@ namespace RaiTilePackageManager
             base.OnHandleCreated(e);
             const uint SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOZORDER = 0x4, SWP_FRAMECHANGED = 0x20;
             SetWindowPos(Handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
+        }
+
+        /// <summary>The result strap takes the width and the row's height; the actions stack on its right, primary on top.</summary>
+        Control ResultRow()
+        {
+            var actions = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = new Padding(6, 0, 0, 0) };
+            actions.Controls.AddRange(new Control[] { convertButton, openButton });
+            var row = Ui.Line(0, resultStrap, actions);
+            resultStrap.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
+            resultStrap.Margin = new Padding(0, 3, 0, 3); // the buttons' own margin: band and buttons share top and bottom edges
+            return row;
         }
 
         void PaintHeader(object sender, PaintEventArgs e)

@@ -32,7 +32,7 @@ L'app ha tre schede, nella banda blu in alto insieme ai pulsanti della finestra.
 
 ![La scheda In onda con il server attivo](docs/in-onda.png)
 
-Qui scegli il progetto da servire e la porta, 8000 di default. Dopo una conversione l'app propone il progetto appena creato e, alla riapertura, l'ultimo usato. Con "Metti in onda" parte il server locale: il riquadro rosso IN ONDA conferma che GEOlayers può caricare le tile e conta le richieste che arrivano, e un quadratino rosso accanto alla scheda lo ricorda anche dalle altre schede.
+Qui scegli il progetto da servire e la porta, 8000 di default. Dopo una conversione l'app propone il progetto appena creato e, alla riapertura, l'ultimo usato. Con "Metti in onda" parte il server locale: il riquadro rosso IN ONDA conferma che GEOlayers può caricare le tile e conta le richieste che arrivano, e un pallino rosso accanto alla scheda lo ricorda anche dalle altre schede.
 
 Il riquadro sotto mostra una tile del progetto e l'URL da usare in GEOlayers. Fai clic sul riquadro per copiarlo negli appunti:
 

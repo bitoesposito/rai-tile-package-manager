@@ -130,26 +130,36 @@ namespace RaiTilePackageManager
             return l.Title.X + text + l.Title.X - l.Tab.Width;
         }
 
-        /// <summary>Draws at <paramref name="origin"/>; <paramref name="reveal"/> &lt; 1 is the on-air wipe in progress.</summary>
+        /// <summary>
+        /// Draws at <paramref name="origin"/>; <paramref name="reveal"/> &lt; 1 is the on-air wipe in progress. A
+        /// <paramref name="height"/> above the text's own (a strap stretched beside stacked buttons) extends the band and the
+        /// tab, with the text block centred.
+        /// </summary>
         public static void Paint(Graphics g, Point origin, int width, float k, float reveal, Color tabColor, Glyph glyph, string tabLabel, string title, string detail,
-            Font titleFont = null, Font detailFont = null)
+            Font titleFont = null, Font detailFont = null, int height = 0)
         {
             titleFont = titleFont ?? TitleFont;
             detailFont = detailFont ?? DetailFont;
             var l = Measure(k, width, tabLabel, title, detail, titleFont, detailFont);
+            int h = Math.Max(height, l.Height), shift = (h - l.Height) / 2;
+            var tabBox = new Rectangle(l.Tab.X, 0, l.Tab.Width, h);
             var state = g.Save();
             g.TranslateTransform(origin.X, origin.Y);
-            g.SetClip(new Rectangle(0, 0, (int)Math.Ceiling(width * reveal), l.Height));
-            using (var band = new SolidBrush(Theme.Band)) g.FillRectangle(band, 0, 0, width, l.Height);
-            using (var tab = new SolidBrush(tabColor)) g.FillRectangle(tab, l.Tab);
+            g.SetClip(new Rectangle(0, 0, (int)Math.Ceiling(width * reveal), h));
+            using (var band = new SolidBrush(Theme.Band)) g.FillRectangle(band, 0, 0, width, h);
+            using (var tab = new SolidBrush(tabColor)) g.FillRectangle(tab, tabBox);
             if (tabLabel != null)
-                TextRenderer.DrawText(g, tabLabel, titleFont, l.Tab, Theme.BandText,
+                TextRenderer.DrawText(g, tabLabel, titleFont, tabBox, Theme.BandText,
                     TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.PreserveGraphicsClipping | TextFormatFlags.PreserveGraphicsTranslateTransform);
             else
-                DrawGlyph(g, new Rectangle(l.Tab.X, l.Tab.Y, l.Tab.Width, l.Tab.Width), glyph, k);
+                DrawGlyph(g, new Rectangle(l.Tab.X, shift, l.Tab.Width, l.Tab.Width), glyph, k);
             const TextFormatFlags flags = Wrap | TextFormatFlags.PreserveGraphicsClipping | TextFormatFlags.PreserveGraphicsTranslateTransform;
-            TextRenderer.DrawText(g, title, titleFont, l.Title, Theme.BandText, flags);
-            if (!string.IsNullOrEmpty(detail)) TextRenderer.DrawText(g, detail, detailFont, l.Detail, Theme.BandSoft, flags);
+            var titleBox = l.Title;
+            var detailBox = l.Detail;
+            titleBox.Offset(0, shift);
+            detailBox.Offset(0, shift);
+            TextRenderer.DrawText(g, title, titleFont, titleBox, Theme.BandText, flags);
+            if (!string.IsNullOrEmpty(detail)) TextRenderer.DrawText(g, detail, detailFont, detailBox, Theme.BandSoft, flags);
             g.Restore(state);
         }
 
@@ -294,7 +304,7 @@ namespace RaiTilePackageManager
         protected override void OnPaint(PaintEventArgs e)
         {
             e.Graphics.Clear(Parent?.BackColor ?? Theme.Desk);
-            Sottopancia.Paint(e.Graphics, Point.Empty, Width, K, wipe.Reveal, tabColor, glyph, tabLabel, title, detail);
+            Sottopancia.Paint(e.Graphics, Point.Empty, Width, K, wipe.Reveal, tabColor, glyph, tabLabel, title, detail, height: Height);
         }
     }
 
@@ -460,34 +470,38 @@ namespace RaiTilePackageManager
             AccessibleDescription = string.Join(", ", new[] { selected ? "scheda aperta" : null, onAir ? "server in onda" : null }.Where(x => x != null));
 
         float K => DeviceDpi / 96f;
-        int TallySize => (int)(9 * K);
-        int TallyGap => (int)(8 * K);
+        const TextFormatFlags LabelFlags = TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding;
+        int Pad => (int)(10 * K); // each side: labels sit 20 px apart
+        int TallySize => (int)(10 * K);
+        int TallyGap => (int)(7 * K);
 
         public override Size GetPreferredSize(Size proposed) =>
-            new Size(TextRenderer.MeasureText(Text, TabFont).Width + (int)(28 * K) + (onAir ? TallySize + TallyGap : 0), (int)(56 * K));
+            new Size(TextRenderer.MeasureText(Text, TabFont, Size.Empty, LabelFlags).Width + 2 * Pad + (onAir ? TallySize + TallyGap : 0), (int)(56 * K));
 
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics;
             float k = K;
             g.Clear(Theme.Band);
-            var text = ClientRectangle;
+            int x = Pad;
             if (onAir)
             {
-                int x = (int)(14 * k), y = (Height - TallySize) / 2;
-                using (var red = new SolidBrush(Theme.Live)) g.FillRectangle(red, x, y, TallySize, TallySize);
-                using (var edge = new Pen(Theme.BandText, Math.Max(1, k))) g.DrawRectangle(edge, x, y, TallySize, TallySize); // red alone is 2.5:1 on the band
-                text = new Rectangle(x + TallySize + TallyGap, 0, Width - x - TallySize - TallyGap - (int)(14 * k), Height);
+                int y = (Height - TallySize) / 2;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                using (var red = new SolidBrush(Theme.Live)) g.FillEllipse(red, x, y, TallySize, TallySize);
+                using (var edge = new Pen(Theme.BandText, Math.Max(1, k))) g.DrawEllipse(edge, x, y, TallySize, TallySize); // red alone is 2.5:1 on the band
+                g.SmoothingMode = SmoothingMode.None;
+                x += TallySize + TallyGap;
             }
-            TextRenderer.DrawText(g, Text, TabFont, text, selected ? Theme.BandText : Theme.BandSoft,
-                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix);
+            TextRenderer.DrawText(g, Text, TabFont, new Rectangle(x, 0, Width - x - Pad, Height), selected ? Theme.BandText : Theme.BandSoft,
+                LabelFlags | TextFormatFlags.VerticalCenter);
             int bar = selected ? (int)(3 * k) : hover ? (int)Math.Max(1, k) : 0;
             if (bar > 0)
                 using (var b = new SolidBrush(selected ? Theme.BandText : Theme.BandSoft))
-                    g.FillRectangle(b, (int)(12 * k), Height - bar, Width - (int)(24 * k), bar);
+                    g.FillRectangle(b, Pad, Height - bar, Width - 2 * Pad, bar);
             if (Focused && ShowFocusCues)
                 using (var pen = new Pen(Theme.BandText, Math.Max(1, k)) { DashStyle = DashStyle.Dot })
-                    g.DrawRectangle(pen, (int)(6 * k), (int)(10 * k), Width - (int)(12 * k) - 1, Height - (int)(20 * k) - 1);
+                    g.DrawRectangle(pen, (int)(3 * k), (int)(10 * k), Width - (int)(6 * k) - 1, Height - (int)(20 * k) - 1);
         }
 
         protected override void OnClick(EventArgs e) { base.OnClick(e); Focus(); Chosen?.Invoke(this, EventArgs.Empty); }
